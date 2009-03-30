@@ -65,7 +65,7 @@ class MsDatabase_viralzone extends MsDatabase {
 			if(strlen($entry[1])) {
 				#print("Adding new record; $entry[1].\n");
 				if($latest_record) $records[] = $latest_record;
-				$latest_record = new MsRecord();
+				$latest_record = new MsRecord($this);
 				$latest_record->set_data('name', $entry[1]);
 				#$latest_virus = $entry[1];
 				#$records[$latest_virus] = array();
