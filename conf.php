@@ -24,6 +24,22 @@ $msDatabases['pdb'] = array(
 	'include' => 'databases/pdb.php'
 );
 
+$msDatabases['pdbsum'] = array(
+	'include' => 'databases/pdbsum.php'
+);
+
+$msDatabases['sdbs'] = array(
+	'include' => 'databases/sdbs.php'
+);
+
+$msDatabases['hprd'] = array(
+	'include' => 'databases/hprd.php'
+);
+
+$msDatabases['pubmed'] = array(
+	'include' => 'databases/pubmed.php'
+);
+
 $msCategories = array();
 $msCategoryHits = array();
 
@@ -34,13 +50,31 @@ $msCategories['viren'] = array(
 );
 $msCategoryHits['viren'] = 10;
 
-$msCategories['protein'] = array(
+$msCategories['protein (pdb)'] = array(
 	 'pdb'
 );
+$msCategoryHits['protein (pdb)'] = 15;
 
-$msCategoryHits['protein'] = 15;
+$msCategories['protein (pdbsum)'] = array(
+	'pdbsum'
+);
+$msCategoryHits['protein (pdbsum)'] = 15;
 
-$msCategoryHits['example1'] = 10;
+$msCategories['spectre'] = array(
+	'sdbs'
+);
+$msCategoryHits['spectre'] = 15;
+
+$msCategories['protein (human)'] = array(
+	'hprd'
+);
+$msCategoryHits['protein (human)'] = 20;
+
+$msCategories['ncbi pubmed'] = array(
+	'pubmed'
+);
+$msCategoryHits['ncbi pubmed'] = 20;
+
 
 $msCategories['example1'] = array(
 	array('example', 0.2, 0.7),

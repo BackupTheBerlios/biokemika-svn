@@ -59,7 +59,7 @@ class MsSpecialPage extends SpecialPage {
 
 		$this->controller->input_category = strtolower($wgRequest->getText('ms_cat'));
 		if(!isset($msCategories[$this->controller->input_category])) {
-			throw new MWException('Invalid Category.');
+			throw new MWException('<b>'.htmlspecialchars($this->controller->input_category).'</b>: Invalid Category');
 		}
 
 		return true;
