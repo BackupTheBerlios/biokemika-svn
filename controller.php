@@ -35,6 +35,7 @@ class MsController {
 	/// User field: The Query keywords
 	public $input_keywords;
 	public $input_category;
+	public $input_databases;
 	/// wie viel Hits, vorgegeben, oder halt von Benutzer
 	public $input_hits;
 
@@ -75,7 +76,8 @@ class MsController {
 		global $msDatabases, $msCategories;
 		$queries = array();
 
-		foreach($msCategories[$this->input_category] as $db) {
+		foreach(//$msCategories[$this->input_category]
+			$this->input_databases as $db) {
 			if(is_array($db)) $db = $db[0]; # get only name.
 			$query = new MsQuery();
 			$query->keyword = $this->input_keywords;
@@ -113,7 +115,9 @@ class MsController {
 
 		//var_dump($results); exit();
 		$out = array(); # the MsRecord list for output
-		foreach($results as $result) {
+		$out = $results[0]->get_records(0, 20);
+		for(;0!=0;) {
+		//foreach($results as $result) {
 			# handel one result from one database.
 			if(count($msCategories[$this->input_category]) == 1) {
 				# its a simple category: only one database.

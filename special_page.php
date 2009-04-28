@@ -17,7 +17,7 @@ require_once( "\$IP/extensions/special_page/special_page.php" );
 EOT;
         exit( 1 );
 }
- 
+
 $wgExtensionCredits['specialpage'][] = array(
 	'name' => 'MetaSearch',
 	'author' => 'Sven Koeppel',

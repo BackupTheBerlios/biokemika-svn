@@ -15,10 +15,6 @@
 # to test it:
 error_reporting(E_ALL);
 
-// Well... since we have like ordinary users, we also can
-// pretend to be such ones.
-ini_set('user_agent', 'Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.0.6) Gecko/2009011912 Firefox/3.0.6');
-
 class MsDatabase_sdbs extends MsDatabase {
 
 	# URL of the input form, will get search url automatically

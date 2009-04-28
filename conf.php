@@ -6,9 +6,11 @@ global $msCategories,$msDatabases,$msCategoryHits, $msConfiguration;
 
 $msConfiguration = array(
 	#'default-database-record-message' => 
-	'default-record-message' => 'Ms-record'
+	'default-record-message' => 'Ms-record',
+	'root-category-name'  => 'root'
 );
 
+/*
 $msDatabases = array();
 
 $msDatabases['example'] = array(
@@ -39,8 +41,9 @@ $msDatabases['hprd'] = array(
 $msDatabases['pubmed'] = array(
 	'include' => 'databases/pubmed.php'
 );
+*/
+/*
 
-$msCategories = array();
 $msCategoryHits = array();
 
 //   => if string => only one database
@@ -85,3 +88,4 @@ $msCategoryHits['example1'] = 10;
 $msCategories['example2'] = array(
 	// alle wie example1... + protein
 );
+*/
