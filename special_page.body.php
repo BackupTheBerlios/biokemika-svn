@@ -129,7 +129,7 @@ class MsQueryPage extends MsPage {
 	}
 
 	# $query: string, $cats: MsCategory stack, $assistant_status: will be param to Ms-assistant
-	function print_search_mask($query='', $cats=false, $assistant_status='good') {
+	function print_search_mask($query='', $cats=false, $postsearch=false, $assistant_status='good') {
 		global $wgOut, $msConfiguration;
 
 		// make sure root is the very first category.
@@ -140,29 +140,36 @@ class MsQueryPage extends MsPage {
 		# get the topmost category of the stack
 		$current_cat = $cats[count($cats)-1];
 
-		// Contents of prebox = most sub category
-		$prebox = $current_cat->get_box('presearch');
 		$action = $this->special_page->getTitle()->escapeLocalURL(); // <form> action.
 
-		$wgOut->addHTML(<<<BLA
-<div class="ms-formbox">
-	<form method="get" action="$action" name="ms">
-		<div class="ms-right">
-			<div class="ms-prebox">
-BLA
-);
-		$wgOut->addWikiText($prebox);
-		$wgOut->addHTML('</div><div class="mc-bc">');
+		$wgOut->addHTML('<div class="ms-formbox">');
+		$wgOut->addHTML('<form method="get" action="'.$action.'" name="ms">');
+		if($current_cat->has_input_text()) {
+			$wgOut->addHTML('<div class="ms-right">');
+			$wgOut->addHTML('<div class="ms-assistant-box">');
+		} else {
+			$wgOut->addHTML('<div class="ms-assistant-box">');
+		}
+
+		// Contents of assistant box = most sub category
+		$box = $current_cat->get_box($postsearch?'postsearch':'presearch');
+		$wgOut->addWikiText($box);
+
+		$wgOut->addHTML('</div><!--assistant box-->');
+		if(! $current_cat->has_input_text()) {
+			$wgOut->addHTML('<div class="ms-right">');
+		}
+		$wgOut->addHTML('<div class="mc-bc">');
 		$wgOut->addWikiText(wfMsg('ms-assistant', $assistant_status));
 		$wgOut->addHTML('</div></div><!--ms-right-->');
 
-		#		<img alt="Mr. BC" src="http://biokemika.uni-frankfurt.de/w/images/thumb/Mr_Happy.png/190px-Mr_Happy.png">
-		#	</div>
-
 		$wgOut->addHTML('<div class="ms-left">');
-		$wgOut->addHTML('<div class="ms-inputtext">');
-		$current_cat->add_input_text($query);
-		$wgOut->addHTML('</div><div class="ms-class-selector">');
+		if($current_cat->has_input_text()) {
+			$wgOut->addHTML('<div class="ms-inputtext">');
+			$current_cat->add_input_text($query);
+			$wgOut->addHTML('</div>');
+		}
+		$wgOut->addHTML('<div class="ms-class-selector">');
 
 		$str = ''; // out string buffer.
 		for($x=0;$x<count($cats);$x++) {
@@ -226,7 +233,8 @@ BLU;
 
 		$this->print_search_mask(
 			$this->controller->input_keywords,
-			MsCategoryFactory::get_category_stack($wgRequest->getArray('ms_cat'))
+			MsCategoryFactory::get_category_stack($wgRequest->getArray('ms_cat')),
+			true
 		);
 		$wgOut->addWikiText("==Suchergebnisse==");
 		#var_dump($records); exit();

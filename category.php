@@ -146,7 +146,7 @@ class MsCategory {
 		$possible_msgs = array(
 			'Ms-$1-category',
 			'Ms-$1-record',
-			'Ms-category-input-$1',
+			#'Ms-category-input-$2', $2 = $this->get('input') !
 			'Ms-$1-presearch-box',
 			'Ms-$1-postsearch-box'
 		);
@@ -185,6 +185,11 @@ HTML
 			default:
 			$wgOut->addWikiText(wfMsg('ms-category-input-'.$this->get('input')));
 		}
+	}
+
+	// do we have an input form? If not => don't display.
+	public function has_input_text() {
+		return strtolower($this->get('input')) != 'none';
 	}
 
 
