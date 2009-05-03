@@ -13,6 +13,7 @@ $ms_dir = dirname(__FILE__) . '/';
 require_once $ms_dir.'conf.php';
 require_once $ms_dir.'controller.php';
 require_once $ms_dir.'database.php';
+require_once $ms_dir.'category.php';
 require_once $ms_dir.'dispatcher.php';
 
 require_once $ms_dir.'databases/example.php';
@@ -23,6 +24,10 @@ function var_dump_ret($mixed = null) {
   $content = ob_get_contents();
   ob_end_clean();
   return $content;
+}
+
+function wfMsgExists($name) {
+	return wfMsg($name) != "&lt;$name&gt;";
 }
 
 
@@ -58,12 +63,13 @@ class MsSpecialPage extends SpecialPage {
 		}
 
 		$this->controller->input_category = strtolower(array_pop($wgRequest->getArray('ms_cat')));
-		if(empty($this->controller->input_category) || !$this->get_category_exists($this->controller->input_category)) {
+		if(empty($this->controller->input_category) || !MsCategoryFactory::exists($this->controller->input_category)) {
 			//if(!isset($msCategories[$this->controller->input_category])) {
 			throw new MWException('<b>'.htmlspecialchars($this->controller->input_category).'</b>: Invalid Category');
 		}
 
-		$this->controller->input_databases = $this->get_category_dbs($this->controller->input_category);
+		$cat = new MsCategory($this->controller->input_category);
+		$this->controller->input_databases = $cat->get_databases();
 
 		return true;
 	}
@@ -73,11 +79,7 @@ class MsSpecialPage extends SpecialPage {
 	}
 
 	function get_category_exists($category) {
-		return $this->wfMsgExists("ms-${category}-category");
-	}
-
-	function wfMsgExists($name) {
-		return wfMsg($name) != "&lt;$name&gt;";
+		return wfMsgExists("ms-${category}-category");
 	}
 
 	function get_sub_categories($catname=false) {
@@ -109,17 +111,21 @@ class MsSpecialPage extends SpecialPage {
 		return array_map('trim', explode(', ', $matching[1]) );
 	}
 
-	function print_search_mask($query='', $cats=false) {
+	# $query: string, $cats: MsCategory stack, $assistant_status: will be param to Ms-assistant
+	function print_search_mask($query='', $cats=false, $assistant_status='good') {
 		global $wgOut, $msConfiguration;
 
 		// make sure root is the very first category.
-		if(!is_array($cats)) $cats = array();
-		if(empty($cats) || $cats[0] != $msConfiguration['root-category-name'])
-			array_unshift($cats, $msConfiguration['root-category-name']);
+		#if(!is_array($cats)) $cats = array();
+		#if(empty($cats) || $cats[0] != $msConfiguration['root-category-name'])
+		#	array_unshift($cats, $msConfiguration['root-category-name']);
+
+		# get the topmost category of the stack
+		$current_cat = $cats[count($cats)-1];
 
 		// Contents of prebox = most sub category
-		$prebox = $this->get_category_box($cats[count($cats)-1], 'presearch');
-		$action = $this->getTitle()->escapeLocalURL();
+		$prebox = $current_cat->get_box('presearch');
+		$action = $this->getTitle()->escapeLocalURL(); // <form> action.
 
 		$wgOut->addHTML(<<<BLA
 <div class="ms-formbox">
@@ -129,24 +135,22 @@ class MsSpecialPage extends SpecialPage {
 BLA
 );
 		$wgOut->addWikiText($prebox);
-		$str = <<<BLA
-			</div>
-			<div class="mc-bc">
-				<img alt="Mr. BC" src="http://biokemika.uni-frankfurt.de/w/images/thumb/Mr_Happy.png/190px-Mr_Happy.png">
-			</div>
-		</div>
-		<div class="ms-left">
-			<div class="ms-inputtext">
-				Suchbegriff:
-				<input type="text" name="ms_query" value="$query" class="text">
-				<input type="hidden" name="ms_search" value="Suche jetzt durchfuehren">
-				<input type="submit" value="Suchen" class="button">
-			</div>
+		$wgOut->addHTML('</div><div class="mc-bc">');
+		$wgOut->addWikiText(wfMsg('ms-assistant', $assistant_status));
+		$wgOut->addHTML('</div></div><!--ms-right-->');
 
-			<div class="ms-class-selector">
-BLA;
+		#		<img alt="Mr. BC" src="http://biokemika.uni-frankfurt.de/w/images/thumb/Mr_Happy.png/190px-Mr_Happy.png">
+		#	</div>
+
+		$wgOut->addHTML('<div class="ms-left">');
+		$wgOut->addHTML('<div class="ms-inputtext">');
+		$current_cat->add_input_text($query);
+		$wgOut->addHTML('</div><div class="ms-class-selector">');
+
+		$str = ''; // out string buffer.
 		for($x=0;$x<count($cats);$x++) {
-			$sub_cats = $this->get_sub_categories($x==0 ? false : $cats[$x]);
+			$sub_cats = $cats[$x]->get_sub_categories();
+			#$sub_cats = $this->get_sub_categories($x==0 ? false : $cats[$x]);
 			if(empty($sub_cats)) {
 				// Endkategorie erreicht!
 				break;
@@ -154,13 +158,14 @@ BLA;
 			if($x!=0) {
 				$str .= '<img src="http://upload.wikimedia.org/wikipedia/commons/0/0e/Forward.png" class="arrow">';
 			}
-			$str .= '<select class="cat-'.$x.'" name="ms_cat[]" size="6" onchange="document.ms.ms_search.value=\'\';document.ms.submit();">';
+			$str .= '<select class="cat-'.$x.'" name="ms_cat[]" size="6" onchange="try{document.ms.ms_search.value=\'\';}catch(e){}; document.ms.submit();">';
 			foreach($sub_cats as $sub_cat) {
 				$str .= "<option value='$sub_cat' ";
-				if($x+1 < count($cats) && $cats[$x+1] == $sub_cat)
+				if($x+1 < count($cats) && $cats[$x+1]->id == $sub_cat)
 					$str .= 'selected="selected"';
 				$str .= '>';
-				$str .= $this->get_category_name($sub_cat);
+				$str .= MsCategoryFactory::get_category_name($sub_cat);
+				#$this->get_category_name($sub_cat);
 				$str .= '</option>';
 			}
 			$str .= '</select>';
@@ -194,7 +199,8 @@ BLU;
 			# display search mask only
 			$this->print_search_mask(
 				$wgRequest->getText('ms_query'),
-				$wgRequest->getArray('ms_cat'));
+				MsCategoryFactory::get_category_stack($wgRequest->getArray('ms_cat'))
+			);
 			return;
 		} else {
 			# do some validation
@@ -204,7 +210,8 @@ BLU;
 				$wgOut->addHTML("Fehler bei Eingabe: ".$e->getLogMessage());
 				$this->print_search_mask(
 					$wgRequest->getText('ms_query'),
-					$wgRequest->getArray('ms_cat'));
+					MsCategoryFactory::get_category_stack($wgRequest->getArray('ms_cat'))
+				);
 				return;
 			}
 		}
@@ -213,9 +220,10 @@ BLU;
 
 		#$this->dump($records);
 
-		$this->print_search_mask($this->controller->input_keywords,
-			//$this->controller->input_category);
-			$wgRequest->getArray('ms_cat'));
+		$this->print_search_mask(
+			$this->controller->input_keywords,
+			MsCategoryFactory::get_category_stack($wgRequest->getArray('ms_cat'))
+		);
 		$wgOut->addWikiText("==Suchergebnisse==");
 		#var_dump($records); exit();
 		foreach($records as $rec) {
