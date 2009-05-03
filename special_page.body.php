@@ -32,7 +32,11 @@ function wfMsgExists($name) {
 
 
 class MsSpecialPage extends SpecialPage {
-	public $controller;
+	static $pages = array(
+		#'choose' => 'MsChooserPage', # Choosing the category (query preparation)
+		'query' => 'MsQueryPage',    # The core part: Quering
+		'list' => 'MsListPage',      # (debugging:) List cats/dbs/etc.
+	);
 
 	function __construct() {
 		parent::__construct( 'Metasearch' );
@@ -40,13 +44,63 @@ class MsSpecialPage extends SpecialPage {
 		$this->controller = MsController::get_instance();
 	}
 
+	function execute($par) {
+		global $wgRequest, $wgOut, $wgScriptPath;
+		$this->setHeaders();
+
+		$wgOut->addLink( array(
+			'rel' => 'stylesheet',
+			'href' => "$wgScriptPath/extensions/metasearch/mediawiki/search.css",
+			'type' => 'text/css'
+		) );
+		//$wgOut->addScriptFile( "$wgScriptPath/extensions/metasearch/mediawiki/search.js" );
+
+		// code borrowed from SecureSearch extension
+		$paramString = strval( $par );
+		if ( $paramString === '' ) {
+			$paramString = 'query';
+		}
+		$params = explode( '/', $paramString );
+		$pageName = array_shift( $params );
+		$page = $this->get_sub_page( $pageName );
+		if ( !$page ) {
+			$wgOut->addWikiMsg( 'ms-invalid-page', $pageName );
+			return;
+		}
+
+		$page->execute( $par );
+	} // execute
+
+	function get_sub_page($name) {
+		if(!isset(self::$pages[$name]))
+			return false;
+		$class = self::$pages[$name];
+		return new $class($this);
+	}
+} // class MsSpecialPage
+
+abstract class MsPage {
+	public $controller;
+	public $special_page;
+
+	function __construct($special_page) {
+		$this->controller = MsController::get_instance();
+		$this->special_page = $special_page;
+	}
+
+	abstract function execute($par);
+
 	# usage in execute: return $this->dump(...);
-	function dump( $data ) {
+	static function dump( $data ) {
 		global $wgOut;
 		$wgOut->addHTML( "<pre>".var_dump_ret($data)."</pre>" );
 		return Null;
 	}
+} // class MsPage
 
+
+class MsQueryPage extends MsPage {
+	public $controller;
 
 	/**
 	 * Read in and validate user input. This method will take
@@ -74,43 +128,6 @@ class MsSpecialPage extends SpecialPage {
 		return true;
 	}
 
-	function get_category_box($category, $area='presearch') {
-		return wfMsg("ms-${category}-${area}-box");
-	}
-
-	function get_category_exists($category) {
-		return wfMsgExists("ms-${category}-category");
-	}
-
-	function get_sub_categories($catname=false) {
-		global $msConfiguration;
-		if(!$catname) $catname = $msConfiguration['root-category-name'];
-		$msg_name = "ms-${catname}-category";
-		$msg = wfMsg($msg_name);
-		// msg existiert nicht => cat existiert nicht => nix subcat.
-		//var_dump($catname, $msg_name, $msg);
-		if($msg == "&lt;$msg_name&gt;" || 
-			!preg_match('/^\s*Sub:\s*(.+)$/mi', $msg, $matching))
-			return array(); // einfach: nix subcat. Weil vielleicht
-			// cat gar keine subcats hat, aber trotzdem existiert.
-			//throw new MWException("$msg_name doesnt match regex!");
-		return array_map('trim', explode(', ', $matching[1]) );
-	}
-
-	function get_category_name($category) {
-		$msg = wfMsg("ms-${category}-category");
-		if(preg_match('/^\s*Name:\s*(.+)$/mi', $msg, $matching))
-			return $matching[1];
-		else	return $category.' (nameless)';
-	}
-
-	function get_category_dbs($category) {
-		$msg = wfMsg("ms-${category}-category");
-		if(!preg_match('/^\sdbs?:\s*(.+)$/mi', $msg, $matching))
-			return array(); # no databases
-		return array_map('trim', explode(', ', $matching[1]) );
-	}
-
 	# $query: string, $cats: MsCategory stack, $assistant_status: will be param to Ms-assistant
 	function print_search_mask($query='', $cats=false, $assistant_status='good') {
 		global $wgOut, $msConfiguration;
@@ -125,7 +142,7 @@ class MsSpecialPage extends SpecialPage {
 
 		// Contents of prebox = most sub category
 		$prebox = $current_cat->get_box('presearch');
-		$action = $this->getTitle()->escapeLocalURL(); // <form> action.
+		$action = $this->special_page->getTitle()->escapeLocalURL(); // <form> action.
 
 		$wgOut->addHTML(<<<BLA
 <div class="ms-formbox">
@@ -179,21 +196,8 @@ BLU;
 		$wgOut->addHTML($str);
 	}
 
-	/*
-	function print_search_mask($keyword='', $category='') {
-		global $wgOut;
-		$wgOut->addHTML( 
-			wfMsg('ms-inputform',
-				$this->getTitle()->escapeLocalURL(),
-				$keyword,
-				empty($category)?'':("<option value='$category' selected='selected'>$category (Momentane Kategorie)</option>\n<option>-----------</option>")
-			)
-		);
-	}*/
-
 	function execute( $par ) {
 		global $wgRequest, $wgOut;
-		$this->setHeaders();
 
 		if(! $wgRequest->getBool('ms_search')) {
 			# display search mask only
@@ -243,4 +247,64 @@ BLU;
 		# Output
 		#$wgOut->addHTML( "Hello World." );
 	} // execute
-} // class
+} // class MsQueryPage
+
+class MsListPage extends MsPage {
+	public $list_of_cats;
+	public $list_of_dbs = array();
+	public $list_of_msgs = array();
+
+	function execute( $par ) {
+		global $wgOut;
+		$wgOut->addWikiText(<<<WIKI
+This is a page for debugging and developing the extension, as well as
+for administrators that can check their configuration details by using
+the following listings.
+WIKI
+		);
+
+		$wgOut->addWikiText("== Metasearch Categorytree ==");
+		$wgOut->addWikiText( $this->category_tree() );
+
+		$wgOut->addWikiText("== Metasearch Databases ==");
+		$wgOut->addWikiText( $this->list_databases() );
+
+		$wgOut->addWikiText("== Metasearch Mediawiki pages ==");
+		$wgOut->addHTML('<pre>');
+		foreach($this->list_of_msgs as $msg) {
+			$wgOut->addHTML("$msg\n");
+		}
+		$wgOut->addHTML('</pre>');
+	}
+
+	function list_databases() {
+		$r = "'''TODO''': This only lists all dbs found in categorytree, not all installed ones.\n\n";
+		# At this point: Get all dbs from MsDatabaseFactory and
+		# get installation details directly from Database objects!
+		foreach($this->list_of_dbs as $db) {
+			$r .= "* $db\n";
+		}
+		return $r;
+	}
+
+	function category_tree($leaf=false, $level=1) {
+		if(!$leaf) $leaf = MsCategoryFactory::get_root_category();
+		$indent = str_repeat('#', $level);
+		$name = $leaf->get('name');
+		if(!$name) $name = "''no name set!''";
+		$id = $leaf->id;
+		$r = "${indent} '''[[MediaWiki:ms-$id-category|$id]]''' ".($leaf->exists()?'':"'''DOES NOT EXIST'''")."\n";
+		$r .= "${indent}* ''MSGS'': [[MediaWiki:ms-$id-record|record]], [[MediaWiki:ms-$id-category-input|input]], [[MediaWiki:ms-$id-presearch-box|presearch]], [[MediaWiki:ms-$id-postsearch-box|postsearch]]\n";
+		foreach($leaf->get_conf_array() as $k=>$v) {
+			$r .= "${indent}* ''$k'': $v\n";
+		}
+		#if(wfMsgExists($msg)) $this->list_of_msgs += $msg;
+		$this->list_of_msgs = array_merge($this->list_of_msgs, $leaf->get_messages());
+		$this->list_of_dbs = array_merge($this->list_of_dbs, $leaf->get_databases());
+
+		foreach($leaf->get_sub_categories(true) as $subcat) {
+			$r .= $this->category_tree($subcat, $level+1);
+		}
+		return $r;
+	}
+}

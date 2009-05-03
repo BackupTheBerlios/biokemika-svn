@@ -9,16 +9,35 @@
 error_reporting(E_ALL);
 
 class MsCategoryFactory {
-	public static function get_category_tree() {
-	}
+	# simply use ::get_root_category()->get_sub_categories(true);
+	// produce an fully calculated category tree
+	/*public static function get_category_tree($root=false) {
+		if(!$root) {
+			$real_root_cat = self::get_root_category();
+			return array($root => self::get_category_tree($real_root_cat));
+		}
+
+		if(!is_object($root)) {
+			var_dump($root);
+			throw new MWException("MsCategoryFactory categorytree generator: Tree inconsistence!");
+			return;
+		}
+		$tree = $root->get_sub_categories(true);
+		foreach($tree as $key) {
+			$key->get_sub_categories(true);
+			$tree[] = self::get_category_tree($cat);
+		}
+		return $tree;
+
+	}*/
 
 	public static function exists($name) {
 		return wfMsgExists("ms-${name}-category");
 	}
 
-	public static function get_root_category($name) {
+	public static function get_root_category() {
 		global $msConfiguration;
-		$this->get_category($msConfiguration['root-category-name']);
+		return self::get_category($msConfiguration['root-category-name']);
 	}
 
 	// just an alias for `new MsCategory($name)`
@@ -54,7 +73,9 @@ class MsCategoryFactory {
 class MsCategory {
 	public $id;
 	private $dummy; // if there doesn't exist such a category
-	public $conf;
+	private $conf; # configuration array => use get_conf_array from external
+	public $conf_msg; # the parsed wfMsg that holds the configuration
+	public $subs; # sub category object array
 
 	// if name == false => ROOT category.
 	public function __construct($id) {
@@ -69,6 +90,7 @@ class MsCategory {
 	// read in the config of this database
 	private function read_configuration($message) {
 		$lines = explode("\n", wfMsg($message));
+		$this->conf_msg = wfMsg($message); # for later use.
 		foreach($lines as $line) {
 			if(!preg_match('/^\s*(.+?):\s*(.+)$/i', $line, $matching))
 				// TODO: parsing errors should not be fatal
@@ -102,13 +124,48 @@ class MsCategory {
 	public function get_databases() {
 		 return $this->get_array($this->has_set('db')?'db':'dbs');
 	}
-	public function get_sub_categories() {
-		return $this->get_array('sub');
+	public function get_sub_categories($as_objects=false) {
+		if(!$as_objects)
+			return $this->get_array('sub');
+		else if(!isset($this->subs)) {
+			// create subs
+			$this->subs = array();
+			foreach($this->get_sub_categories(false) as $cat_id) {
+				$this->subs[] = new MsCategory($cat_id);
+			}
+		}
+		return $this->subs;
+	}
+	public function has_sub_categories() {
+		$cats = $this->get_sub_categories();
+		return !empty($cats);
+	}
+
+	// collect all mediawiki messages
+	public function get_messages() {
+		$possible_msgs = array(
+			'Ms-$1-category',
+			'Ms-$1-record',
+			'Ms-category-input-$1',
+			'Ms-$1-presearch-box',
+			'Ms-$1-postsearch-box'
+		);
+		$existing_msgs = array();
+		foreach($possible_msgs as $msg) {
+			$msg = str_replace('$1', $this->id, $msg);
+			if(wfMsgExists($msg))
+				$existing_msgs[] = $msg;
+		}
+		return $existing_msgs;
+	}
+
+	public function get_conf_array() {
+		return $this->exists() ? $this->conf : array();
 	}
 
 	// if this database exists
 	public function exists() {
-		return $this->dummy;
+		return !$this->dummy;
 	}
 
 	// will produce output right to $wgOut.
