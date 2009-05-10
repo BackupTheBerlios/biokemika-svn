@@ -10,13 +10,7 @@
 error_reporting(E_ALL);
 
 $ms_dir = dirname(__FILE__) . '/';
-require_once $ms_dir.'conf.php';
-require_once $ms_dir.'controller.php';
-require_once $ms_dir.'database.php';
-require_once $ms_dir.'category.php';
-require_once $ms_dir.'dispatcher.php';
 
-require_once $ms_dir.'databases/example.php';
 
 function var_dump_ret($mixed = null) {
   ob_start();
@@ -50,7 +44,7 @@ class MsSpecialPage extends SpecialPage {
 
 		$wgOut->addLink( array(
 			'rel' => 'stylesheet',
-			'href' => "$wgScriptPath/extensions/metasearch/mediawiki/search.css",
+			'href' => "$wgScriptPath/extensions/metasearch/MetaSearch.css",
 			'type' => 'text/css'
 		) );
 		//$wgOut->addScriptFile( "$wgScriptPath/extensions/metasearch/mediawiki/search.js" );
