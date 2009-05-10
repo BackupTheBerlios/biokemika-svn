@@ -18,22 +18,8 @@ class MsDatabase_viralzone extends MsDatabase {
 
 	public function execute(MsQuery $query) {
 		$records = $this->fetch($query);
-		#var_dump($records);
+		#var_dump($records); exit(0);
 		return new MsResult($this, $records);
-		
-		// Erstelle MsRecords:
-		/*foreach($raw_records as $title => $links) {
-			// Wir haben 3 Links. Welche wollen wir nutzen?
-			$link = '';
-			foreach($links as $t => $url) {
-				if(strpos($t, 'genus')) $link = $url;
-			}
-
-			$result->records[] = new MsRecord(
-				$title,
-				self::$domain . $link
-			);
-		}*/
 	}
 
 	function fetch($query) {
@@ -67,6 +53,16 @@ class MsDatabase_viralzone extends MsDatabase {
 				if($latest_record) $records[] = $latest_record;
 				$latest_record = new MsRecord($this);
 				$latest_record->set_data('name', $entry[1]);
+
+				# fill fields stupidly with default values:
+				$latest_record->set_data('baltimore_link', '');
+				$latest_record->set_data('family_link', '');
+				$latest_record->set_data('genus_link', '');
+				$latest_record->set_data('baltimore', "''Baltimore nicht angegeben''");
+				$latest_record->set_data('family', "''Familie nicht angegeben''");
+				$latest_record->set_data('genus', "''Genus nicht angegeben''");
+
+
 				#$latest_virus = $entry[1];
 				#$records[$latest_virus] = array();
 			} else {
@@ -80,7 +76,17 @@ class MsDatabase_viralzone extends MsDatabase {
 		}
 		# and for the very last item:
 		if($latest_record) $records[] = $latest_record;
-		#print "These are the records:<pre>"; var_dump($records); exit;
+#		print "These are the records:<pre>"; var_dump($records);
+		# create "best links" for each record:
+		/*foreach($records as $record) {
+			if($record->get_data('genus'))
+				$record->set_data('link', $record->get_data('genus_link'));
+			else if($record->get_data('family'))
+				$record->set_data('link', $record->get_data('family_link'));
+			else if($record->get_data('baltimore'))
+				$record->set_data('link', $record->get_data('baltimore_link'));
+			else	$record->set_data('link', 'http://www.google.dei);
+		}*/
 		return $records;
 	}
 

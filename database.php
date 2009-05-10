@@ -215,8 +215,15 @@ class MsRecord {
 	}
 
 	function get_data($key, $value) {
-		//if(isset($this->data[$key]
+		$key = '{{{'.$key.'}}}';
+		if(isset($this->data[$key]))
+			return $this->data[$key];
+		else
+			return false;
 	}
+
+	function set($k,$v) { $this->set_data($k,$v); }
+	function get($k,$v) { $this->set_data($k,$v); }
 
 	// e.g. for usort()
 	static function cmp_relevance(MsRecord $rec_a, MsRecord $rec_b) {

@@ -140,9 +140,10 @@ class MsQueryPage extends MsPage {
 		# get the topmost category of the stack
 		$current_cat = $cats[count($cats)-1];
 
+		$prepost = $postsearch?'postsearch':'presearch';
 		$action = $this->special_page->getTitle()->escapeLocalURL(); // <form> action.
 
-		$wgOut->addHTML('<div class="ms-formbox">');
+		$wgOut->addHTML('<div class="ms-formbox ms-'.$prepost.'">');
 		$wgOut->addHTML('<form method="get" action="'.$action.'" name="ms">');
 		if($current_cat->has_input_text()) {
 			$wgOut->addHTML('<div class="ms-right">');
@@ -152,7 +153,7 @@ class MsQueryPage extends MsPage {
 		}
 
 		// Contents of assistant box = most sub category
-		$box = $current_cat->get_box($postsearch?'postsearch':'presearch');
+		$box = $current_cat->get_box($prepost);
 		$wgOut->addWikiText($box);
 
 		$wgOut->addHTML('</div><!--assistant box-->');

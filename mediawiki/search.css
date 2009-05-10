@@ -9,19 +9,35 @@
 	width: 40%;
 }
 
-.ms-formbox .mc-bc {
-	text-align: right;
-}
-
-.ms-formbox .ms-prebox,
-.ms-prebox-big,
 .ms-inputtext,
 .ms-class-selector {
 	background:#fcfcfc;
 	margin: 5px;
 	padding: 5px;
 	border:1px solid #ccc;
-} 
+}
+
+.ms-presearch .ms-assistant-box,
+.ms-postsearch .ms-assistant-box div {
+	border: 10px solid #cccccc;
+	background-color: white;
+	padding: 8px;
+	margin: 5px;
+	-moz-border-radius: 20px;
+	position: relative;
+	z-index: 5;
+}
+
+.mc-bc {
+	position: relative;
+}
+
+.ms-sprechblase {
+	position: absolute;
+	z-index: 6;
+	top: -27px;
+	left: 180px;
+}
 
 .ms-formbox .ms-left {
 	margin-right: 40%;
@@ -41,9 +57,12 @@
 }
 
 .ms-formbox select {
-	padding: 8px;
-	border: 1px solid black;
+	padding: 10px;
+	border: 2px solid black;
 	max-width: 380px;
+	height: 10em;
+	font-size: 120%;
+	margin-bottom: 10px;
 }
 
 .ms-formbox img.arrow {
