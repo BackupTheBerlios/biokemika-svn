@@ -10,14 +10,27 @@
  **/
 
 class MsDatabaseFactory {
-	public static function get_all_installed_database_names() {
+	// this will just scan the $dir and give out all matching
+	// PHP files.
+	public static function get_all_installed_databases() {
+		global $msConfiguration;
+		$names = array();
+		if($dh = opendir($msConfiguration['database_dir'])) {
+			while($f = readdir($dh)) {
+				if(preg_match('/(.+)\\.php$/', $f, $matches)) {
+					$names[] = $matches[1];
+				}
+			}
+			closedir($dh);
+		}
+		return $names;
 	}
-	public static function get_all_configured_database_names() {
-	}
+
 	public static function create_databases($array_of_names) {
 	}
 	public static function create_database($name) {
-		if(require_once 'databases/'.strtolower($name).'.php') {
+		global $msConfiguration;
+		if(require_once $msConfiguration['database_dir'].'/'.strtolower($name).'.php') {
 			$classname = "MsDatabase_${name}";
 			$database = new $classname($name);
 			return $database;

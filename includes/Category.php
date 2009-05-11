@@ -8,29 +8,12 @@
 
 error_reporting(E_ALL);
 
+/**
+ * The CategoryFactory is a bit quick & dirty like, since it also manages
+ * some "almost global" functions on Categories, like category tree and
+ * category stack handling.
+ **/
 class MsCategoryFactory {
-	# simply use ::get_root_category()->get_sub_categories(true);
-	// produce an fully calculated category tree
-	/*public static function get_category_tree($root=false) {
-		if(!$root) {
-			$real_root_cat = self::get_root_category();
-			return array($root => self::get_category_tree($real_root_cat));
-		}
-
-		if(!is_object($root)) {
-			var_dump($root);
-			throw new MWException("MsCategoryFactory categorytree generator: Tree inconsistence!");
-			return;
-		}
-		$tree = $root->get_sub_categories(true);
-		foreach($tree as $key) {
-			$key->get_sub_categories(true);
-			$tree[] = self::get_category_tree($cat);
-		}
-		return $tree;
-
-	}*/
-
 	public static function exists($name) {
 		return wfMsgExists("ms-${name}-category");
 	}
@@ -68,18 +51,47 @@ class MsCategoryFactory {
 
 		return $array_of_names;
 	}
+
+	// check stack for inheritance consistency, return a clean stack from
+	// the top to at least the errorous position
+	public static function clean_category_stack($stack) {
+		global $msConfiguration;
+
+		// trivial case.
+		if(empty($stack)) return $stack;
+
+		// check root
+		if($stack[0]->id != $msConfiguration['root-category-name'])
+			// the root was bad.
+			array_unshift($stack, $msConfiguration['root-category-name']);
+
+		// walk down stack from the TOP until almost-root
+		for($x = count($stack)-1; $x >= 1; $x--) {
+			// if the top element is not a child from the one below...
+			if(! $stack[$x-1]->has_sub_category($stack[$x])) {
+				// ... then kill it.
+				array_pop($stack);
+			}
+		}
+
+		// stack is clean.
+		return $stack;
+	}
 }
 
 class MsCategory {
 	public $id;
 	private $dummy; // if there doesn't exist such a category
-	private $conf; # configuration array => use get_conf_array from external
+	/// Never access this directly, use only get and set. Direct access
+	/// only for friends (Ms prefix classes).
+	public $conf; # configuration array => use get_conf_array from external
 	public $conf_msg; # the parsed wfMsg that holds the configuration
 	public $subs; # sub category object array
 
 	// if name == false => ROOT category.
 	public function __construct($id) {
 		$this->id = $id;
+		$this->conf['id'] = $id; // for better access. Used in userbox.
 		$msg = "ms-${id}-category";
 		if(!wfMsgExists($msg))
 			$this->dummy = true;
@@ -139,6 +151,11 @@ class MsCategory {
 	public function has_sub_categories() {
 		$cats = $this->get_sub_categories();
 		return !empty($cats);
+	}
+	public function has_sub_category($another_cat) {
+		if(is_object($another_cat)) $another_cat = $another_cat->id;
+		// very lightweight check if that's a sub category or not...
+		return in_array($another_cat, $this->get_array('sub'));
 	}
 
 	// collect all mediawiki messages

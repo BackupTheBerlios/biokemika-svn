@@ -19,6 +19,30 @@
 
 error_reporting(E_ALL);
 
+/**** Global functions *****/
+
+function var_dump_ret($mixed = null) {
+  ob_start();
+  var_dump($mixed);
+  $content = ob_get_contents();
+  ob_end_clean();
+  return $content;
+}
+
+function wfMsgExists($name) {
+	return wfMsg($name) != "&lt;$name&gt;";
+}
+
+// perform lightweigt {{{key}}} => $data[key] replacement.
+function wfMsgData($name, $data) {
+	$tmpl = wfMsg($name);
+	foreach($data as $k=>$v) { $data['{{{'.$k.'}}}']=$v; }
+	return strtr($tmpl, $data);
+}
+
+
+/**** Start of controller ****/
+
 class MsController {
 	/// This class is designed after the singleton pattern
 	private static $instance;
@@ -31,6 +55,10 @@ class MsController {
 			self::$instance = new MsController();
 		return self::$instance;
 	}
+
+	/// The view. This should be set very easy in the program,
+	/// so that should be always a valid object.
+	public $view;
 
 	/// User field: The Query keywords
 	public $input_keywords;

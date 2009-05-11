@@ -50,14 +50,15 @@ $wgExtensionCredits['specialpage'][] = array(
 );
 
 # Configuration
+$dir = dirname(__FILE__);
 
 $msConfiguration = array(
 	'default-record-message' => 'Ms-record',
-	'root-category-name'  => 'root'
+	'root-category-name'  => 'root',
+	'database_dir' => $dir.'/databases', 
 );
 
 ### END OF CONFIGURATION ###
-$dir = dirname(__FILE__);
 $wgExtensionMessagesFiles['Metasearch'] = "$dir/MetaSearch.i18n.php";
 $wgExtensionAliasesFiles['Metasearch'] = "$dir/MetaSearch.alias.php";
 
@@ -78,4 +79,8 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 	'MsCategoryFactory' => "$dir/includes/Category.php",
 
 	'MsDispatcher' => "$dir/includes/Dispatcher.php",
+
+	'MsListPage' => "$dir/includes/ListPage.php",
+	'MsQueryPage' => "$dir/includes/QueryPage.php",
+	'MsSearchMask' => "$dir/includes/SearchMask.php",
 );
