@@ -35,9 +35,9 @@ function wfMsgExists($name) {
 
 // perform lightweigt {{{key}}} => $data[key] replacement.
 function wfMsgData($name, $data) {
-	$tmpl = wfMsg($name);
-	foreach($data as $k=>$v) { $data['{{{'.$k.'}}}']=$v; }
-	return strtr($tmpl, $data);
+	$tmpl = wfMsg($name); $new = array();
+	foreach($data as $k=>$v) { $new['{{{'.$k.'}}}']=$v; }
+	return strtr($tmpl, $new);
 }
 
 

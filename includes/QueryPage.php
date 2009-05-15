@@ -95,6 +95,8 @@ class MsQueryPage extends MsPage {
 
 	function print_end_page() {
 		global $wgUser, $wgOut;
+		# display an infobox for every user
+		$wgOut->addWikiText( wfMsg('Ms-end-box') );
 		# display a neat infobox thingy for registered users
 		if(! $wgUser->isAnon() ) {
 			$wgOut->addWikiText( wfMsgData('Ms-user-box', $this->search_mask->get_top_cat()->conf) );

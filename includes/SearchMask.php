@@ -25,7 +25,7 @@ class MsSearchMask {
 	// the status of the assistant. Something like "good", "bad" or
 	// even "yourpersonalstatus". Will be replaced on
 	// mw-assistant-$assistant_status
-	public $assistant_status = 'good';
+	public $assistant_status = 'happy';
 
 	// data that will replaced in the messages with according data,
 	// a hash like a => b will replace {{{a}}} with b.
