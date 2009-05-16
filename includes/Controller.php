@@ -1,26 +1,67 @@
 <?php
 /**
- * MediaWiki MetaSearch Extension: controller.php
+ * MediaWiki MetaSearch Extension
+ * class MsController
  * 
- * THIS IS THE CONTROLLER
+ * This is the Controller class of the MetaSearch extension,
+ * it is some kind of "central part" in the search process.
+ * The MetaSearch object model implements the (at least a
+ * bit ;-) ) a model-view-controller pattern, where
+ * MsPage (especially MsQueryPage with MsSearchMask) plays
+ * the part of the view, MsQuery, MsDatabase and MsResult
+ * objects play the part of the models and this, MsController,
+ * is the ... controller! ;-)
  * 
- * The MsUserQuery class models a query to the meta
- * search engine made throught Mediawiki. This class does:
- *  - Reading in and validation of GET arguments
- *  - Looks up the databases where we can search and
- *    create a list of databases where we actually will
- *    search for this request
- *  - Creates queries for these databases
+ * Well, this is not a really clean implemention of that
+ * approach, since the metasearch extension is somewhat
+ * quick and dirty in some circumstances. Actually, the job
+ * of Controller.php is:
+ *  - implementing some global functions that are missing
+ *    to PHP or Mediawiki, like some wfMsg extensions
+ *  - performing the search, by calling all the neccessary
+ *    functions.
+ * 
+ * For the later part, this is an abstract how such a search
+ * works:
  *
- * The selection of the databases is one central point in
- * the MetaSearch features.
+ *  1. MsController->execute() is called
+ *  2. Neccessary parts of the category tree are built,
+ *     via MsCategory
+ *  3. The databases to search in are collected and set up
+ *  4. Queries for all databases are constructed
+ *  5. A Dispatcher is initialized and called
+ *  6. The Dispatcher executes the Queries for the Databases
+ *  7. Each Database executes the queries and returns a
+ *     Result
+ *  8. The controller takes all these results and merge them
+ *     together to one big result
+ *  9. execute() returns the big result.
+ *
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
  *
  **/
 
 error_reporting(E_ALL);
 
-/**** Global functions *****/
+/********************* Global functions ****************************/
 
+/// Returns the content of a var_dump to a string
 function var_dump_ret($mixed = null) {
   ob_start();
   var_dump($mixed);
@@ -29,19 +70,39 @@ function var_dump_ret($mixed = null) {
   return $content;
 }
 
+/// Checks whether a system message exists.
+/// @param name The Name of the message, will be composed like MediaWiki:$name
+/// @returns Boolean: True/False
 function wfMsgExists($name) {
 	return wfMsg($name) != "&lt;$name&gt;";
 }
 
-// perform lightweigt {{{key}}} => $data[key] replacement.
+/**
+ * A simple implemention of the MediaWiki {{{var}}} replacement
+ * for system messages. This replaces {{{key}}} in the corresponding
+ * message with $data[key] and returns all that.
+ * @param name The name of the system message
+ * @param data An associative array (hash) of key => value pairs
+ * @returns A string
+ **/
 function wfMsgData($name, $data) {
 	$tmpl = wfMsg($name); $new = array();
 	foreach($data as $k=>$v) { $new['{{{'.$k.'}}}']=$v; }
 	return strtr($tmpl, $new);
 }
 
+/**
+ * wfMsg with auto-fallback functionality: Returns wfMsg($name)
+ * if it exists, else wfMsg($fallback_name).
+ */
+function wfMsgFallback($name, $fallback_name) {
+	if(wfMsgExists($name))
+		return wfMsg($name);
+	else
+		return wfMsg($fallback_name);
+}
 
-/**** Start of controller ****/
+/********************* CONTROLLER CLASS ****************************/
 
 class MsController {
 	/// This class is designed after the singleton pattern
@@ -88,11 +149,9 @@ class MsController {
 
 		$dispatcher = MsDispatcher::get_instance($queries);
 		$results = $dispatcher->run($queries);
-		$this->check_results($results);
-
 		#var_dump($results); exit(0);
-		$records = $this->merge($results);
-		return $records;
+		$master_result = $this->merge($results);
+		return $master_result;
 	}
 
 	/**
@@ -115,34 +174,16 @@ class MsController {
 		return $queries;
 	}
 
-	/**
-	 * Checks the results for integrity. Result array passed
-	 * by reference, so call
-	 *   $your_controller->check_results($my_result_array);
-	 * and be happy.
-	 **/
-	function check_results(&$results) {
-		foreach($results as $result) {
-			foreach($result->records as $x => $rec) {
-				# yes, this is stupid:
-				if(!isset($rec->relevance))
-					$rec->relevance = $x+1; # $x start from 0
-				# okay, this is not so stupid:
-				if(!isset($rec->database))
-					$rec->database = $result->database;
-			}
-		}
-	}
 
 	/**
-	 * Merge all the results together to one record list.
-	 *
+	 * Merge all MsResult entries together to one new big
+	 * MsResult.
 	 **/
-	function merge($results) {
-		global $msDatabases, $msCategories, $msCategoryHits;
+	function merge(array $results) {
+		global $msConfiguration;
 
 		//var_dump($results); exit();
-		$out = array(); # the MsRecord list for output
+		$out = array(); # the MsRecord list for (almost) output
 		$out = $results[0]->get_records(0, 20);
 		for(;0!=0;) {
 		//foreach($results as $result) {
@@ -203,6 +244,7 @@ class MsController {
 		}
 
 		# we're done.
-		return $out;
+		$out_result = new MsResult($out);
+		return $out_result;
 	}
 } // Class

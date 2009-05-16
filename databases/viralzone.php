@@ -1,11 +1,47 @@
 <?php
+/**
+ * MediaWiki MetaSearch Extension
+ * BioKemika Database: ViralZone
+ * 
+ * Status:
+ *     Komplett fertig.
+ * Dokumentation:
+ *    http://biokemika.uni-frankfurt.de/wiki/BioKemika:Datenbanken/Viral_Zone
+ * Record-Daten:
+ *   - links
+ *   - baltimore, family, genus
+ *   - baltimore_link, family_link, genus_link
+ *
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
+ *
+ **/
 
-# to test it:
 error_reporting(E_ALL);
 
-/*
-require "../database.php";
-*/
+$msDatabaseCredits['database'][] = array(
+	'path' => __FILE__,
+	'id' => 'viralzone',
+	'page' => 'BioKemika:Datenbanken/ViralZone',
+	'author' => 'Sven Koeppel',
+	'version' => '$Id$',
+	'description' => 'The Expasy Viralzone database',
+);
 
 class MsDatabase_viralzone extends MsDatabase {
 	# for all url compositing
@@ -18,8 +54,11 @@ class MsDatabase_viralzone extends MsDatabase {
 
 	public function execute(MsQuery $query) {
 		$records = $this->fetch($query);
-		#var_dump($records); exit(0);
-		return new MsResult($this, $records);
+		$result = new MsResult($records);
+
+		#$result->dump($records); exit(0);
+
+		return $result;
 	}
 
 	function fetch($query) {
@@ -37,8 +76,15 @@ class MsDatabase_viralzone extends MsDatabase {
 			<a href="/viralzone/all_by_species/526.html">Macavirus (genus)</a><br /></div></div>
 		*/
 		// Let's get the genus... don't know if thats right ;-)
-		if(!preg_match_all(self::$parser, strstr($page, 'h3'), $matches, PREG_SET_ORDER))
-			throw new Exception('Regex on viral zone output did not match!');
+		if(!preg_match_all(self::$parser, strstr($page, 'h3'), $matches, PREG_SET_ORDER)) {
+			// no matches... so let's check wether we got anything
+			if(preg_match('/NO VIRUS FOUND/i', $page))
+				// return... an empty record array.
+				return array();
+			else
+				// the parsing seems to be broken
+				throw new MWException('Regex on viral zone output did not match!');
+		}
 		// Don't need to much memory -- delete page
 		unset($page);
 		// We'll have pretty much matchings. Parse them
@@ -91,13 +137,3 @@ class MsDatabase_viralzone extends MsDatabase {
 	}
 
 } // class
-
-/*
-# test:
-$db = new MsDatabase_viralzone();
-$query = new MsQuery();
-$query->keyword = 'Herpes';
-$query->database = $db;
-$query->run();
-print "\ndone";
-*/

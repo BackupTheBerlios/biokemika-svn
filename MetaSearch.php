@@ -58,6 +58,10 @@ $msConfiguration = array(
 	'database_dir' => $dir.'/databases', 
 );
 
+// this has to be filled by the database driver files. It should
+// be used like $wgExtensionCredits above.
+$msDatabaseCredits = array('database', 'driver');
+
 ### END OF CONFIGURATION ###
 $wgExtensionMessagesFiles['Metasearch'] = "$dir/MetaSearch.i18n.php";
 $wgExtensionAliasesFiles['Metasearch'] = "$dir/MetaSearch.alias.php";
@@ -72,7 +76,8 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 	'MsDatabase' => "$dir/includes/Database.php",
 	'MsDatabaseFactory' => "$dir/includes/Database.php",
 	'MsQuery' => "$dir/includes/Database.php",
-	'MsResult' => "$dir/includes/Database.php",
+	'MsResult' => "$dir/includes/Result.php",
+	'MsSparseResult' => "$dir/includes/Result.php",
 	'MsRecord' => "$dir/includes/Database.php",
 
 	'MsCategory' => "$dir/includes/Category.php",

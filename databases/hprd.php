@@ -1,4 +1,44 @@
 <?php
+/**
+ * MediaWiki MetaSearch Extension
+ * BioKemika Database: HPRD
+ * 
+ * Status:
+ *     Komplett fertig.
+ * Dokumentation:
+ *    http://biokemika.uni-frankfurt.de/wiki/BioKemika:Datenbanken/HPRD
+ * Record-Daten:
+ *
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
+ *
+ **/
+
+error_reporting(E_ALL);
+
+$msDatabaseCredits['database'][] = array(
+	'path' => __FILE__,
+	'id' => 'hprd',
+	'page' => 'BioKemika:Datenbanken/HPRD',
+	'author' => 'Sven Koeppel',
+	'version' => '$Id$',
+	'description' => 'Human Protein Ressource Database',
+);
 
 class MsDatabase_hprd extends MsDatabase {
 	public static $search_url = 'http://www.hprd.org/resultsQuery?multiplefound=&prot_name=$1&external=Ref_seq&accession_id=&hprd=&gene_symbol=&chromo_locus=&function=&ptm_type=&localization=&domain=&motif=&expression=&prot_start=&prot_end=&limit=0&mole_start=&mole_end=&disease=&query_submit=Search';
@@ -8,13 +48,26 @@ class MsDatabase_hprd extends MsDatabase {
 
 	public function execute(MsQuery $query) {
 		$records = $this->fetch($query);
-		#var_dump($records);
-		return new MsResult($this, $records);
+
+		$result = new MsResult($records);
+		return $result;
 	}
 
 	function fetch($query) {
 		$fetch_url = str_replace('$1', urlencode($query->keyword), self::$search_url);
 		$search_page = file_get_contents($fetch_url);
+
+		// check wether this was an *exact* search:
+		// that $http_response_header seems to be set automatically...
+		foreach($http_response_header as $header) {
+			if(preg_match('/^Location: (.+)$/i', $header, $match)) {
+				$rec = new MsRecord($this, 'success');
+				$rec->set_data['url'] = self::$ref_base.$match[1];
+				return array($rec);
+			}
+		}
+		
+
 		if(!$search_page)
 			throw new MWException('HPRD: get search page failed.');
 

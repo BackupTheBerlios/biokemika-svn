@@ -1,18 +1,49 @@
 <?php
 /**
- * Mediawiki MetaSearch Extension: dispatcher.php
+ * MediaWiki MetaSearch Extension
+ * class MsDispatcher
+ * 
+ * The Dispatcher is the part that takes a set of queries
+ * (MsQuery objects) and executes them. Since a search
+ * should not take ages, and since a meta search engine
+ * usually searches at many databases, this is a job that
+ * should run simultanous on multiple databases, whenever
+ * possible. Therefore MsDispatcher is only an abstract 
+ * class, for wich there are multiple implementions with
+ * various approaches to speed up a search.
+ * 
+ * This file contains all (simple) dispatcher classes:
+ * MsDispatcher, MsSerialDispatcher and MsParallelDispatcher.
  *
- * This file contains all dispatcher classes:
- *  - MsDispatcher: The common abstract base class that
- *    defines the interface to a typical dispatcher
- *    implementation
- *  - MsSerialDispatcher: A simple implementation that
- *    executes each query after each other
- *  - MsParallelDispatcher: A (almost) real multithreading
- *    implemention that executes all queries simultanous.
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
  *
  **/
 
+error_reporting(E_ALL);
+
+/**
+ * @class MsDispatcher: The common abstract base class
+ * that defines the interface to a typical dispatcher
+ * implementation. Use MsDispatcher::get_instance($your_queries)
+ * to get the best matching dispatcher object for your
+ * metasearch installation.
+ **/
 abstract class MsDispatcher {
 	/**
 	 * Creates an instance that fits best to the querie

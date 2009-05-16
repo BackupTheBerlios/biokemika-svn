@@ -1,9 +1,35 @@
 <?php
 /**
- * The MsCategory class represents a Category. Nothing more, nothing
- * less ;-)
+ * MediaWiki MetaSearch Extension
+ * class MsCategory, MsCategoryFactory
  * 
+ * A MsCategory represents a category. All databases are organized
+ * in one or more categories. Category configuration is done via
+ * Mediawiki system messages in a very simple format that is parsed
+ * rapidly for every category in every case it is used.
+ * All categories are organized in a hierarchic stucture, called
+ * the Categorytree. That behaves quite like a directory tree.
  * 
+ * The MsCategoryFactory class implements all concepts for
+ * creating categories and handling category stacks.
+ * 
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
  **/
 
 error_reporting(E_ALL);

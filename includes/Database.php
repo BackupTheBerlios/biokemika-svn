@@ -1,17 +1,50 @@
 <?php
 /**
- * Database and QUERY
+ * MediaWiki MetaSearch Extension
+ * class MsDatabase, MsDatabaseFactory, MsQuery, MsRecord
  *
- * @class MsDatabase: Represents an searchable Database
- * that can execute MsQuery objects. This is
- * a somewhat abstract class that needs to be implemented
- * by various search approaches.
+ * This file contains the central MetaSearch model
+ * components. All these classes just abstract simple
+ * algorithms and primitive data structures, like arrays
+ * where the real data is stored.
+ * 
+ * @see MsResult for the other central modelling part
+ *
+ * (c) Copyright 2009 Sven Koeppel
+ *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
  *
  **/
 
-class MsDatabaseFactory {
-	// this will just scan the $dir and give out all matching
-	// PHP files.
+error_reporting(E_ALL);
+
+/**
+ * @class MsDatabaseFactory: This is just a kind of namespace
+ * for some important global (static) functions concerning
+ * Databases. Like the name says, this class implements the
+ * "factory" concept.
+ **/
+abstract class MsDatabaseFactory {
+	/**
+	 * This scans the directory where all database drivers/implementions
+	 * have to be stored and gives out an array of identifiers
+	 * of these databases (just strings).
+	 * That is, this function gives out all installed databases.
+	 **/
 	public static function get_all_installed_databases() {
 		global $msConfiguration;
 		$names = array();
@@ -26,8 +59,13 @@ class MsDatabaseFactory {
 		return $names;
 	}
 
-	public static function create_databases($array_of_names) {
-	}
+	/**
+	 * This will create a database with the Identifier $name.
+	 * Such a database has to be installed in the databases/ directory
+	 * and has to be named correctly.
+	 * @param name The Identifier of the database
+	 * @return MsDatabase object
+	 **/
 	public static function create_database($name) {
 		global $msConfiguration;
 		if(require_once $msConfiguration['database_dir'].'/'.strtolower($name).'.php') {
@@ -39,6 +77,11 @@ class MsDatabaseFactory {
 	}
 }
 
+/**
+ * @class MsDatabase: Represents an searchable Database
+ * that can execute MsQuery objects. This class has to be
+ * extended by all database implementions.
+ **/
 abstract class MsDatabase {
 	# the short hand id, for usage e.g. in configuration
 	public static $id;
@@ -71,16 +114,21 @@ abstract class MsDatabase {
 	 */
 	public function print_record(MsRecord $record) {
 		global $msConfiguration;
+
+		$tmpl = $this->record_template;
+		if($record->get_type()) {
+			$tmpl .= '-'.$record->get_type();
+		}
+		return wfMsgData($tmpl, $record->data);
+		/*
 		$tmpl = wfMsg($this->record_template);
-			#call_user_func_array('wfMsg',#array_merge(array(),$record->template_data)
-			# NEIN, ersetzte Daten SELBST im {{{key}}} syntax.
 		if($tmpl == '&lt;'.$this->record_template.'&gt;') { # the output when there's no such page
 			print $this->record_template." does not exist.<p>";
-			$tmpl = wgMsg($msConfiguration['default-record-message']); #call_user_func_array('wfMsg',
-				#array_merge(array($msConfiguration['default-record-message']),$record->template_data)
+			$tmpl = wgMsg($msConfiguration['default-record-message']);
 		}
 		$ret = strtr($tmpl, $record->data);
 		return $ret;
+		*/
 	}
 
 	/// Just for debugging, when you want to print this database ;-)
@@ -89,6 +137,10 @@ abstract class MsDatabase {
 	}
 }
 
+/**
+ * @class MsQuery: This represents a query that can be made to
+ * a MsDatabase object. This is really simple, stupid.
+ **/
 class MsQuery {
 	public $keyword;
 	public $database;
@@ -102,105 +154,13 @@ class MsQuery {
 }
 
 /**
- * The MsResult class represents the Result from a MsQuery.
- * Before merging, the class only has to contain the number
- * of records, and abstract record data to generate these
- * records when generate_record(int $id) is called.
- **/
-class MsResult {
-	/// There are two types of results: Sparse results that
-	/// don't contain all records rendered and complete results
-	/// where all records are fully rendered.
-	public $is_sparse = true;
-
-	/// The array that really contains MsRecords
-	public $records = array(); // should be private
-	/// An internal data structure for holding the records
-	/// that have not been generated yet. For example an
-	/// array with special identifiers from the database
-	public $abstract_records; // should be private
-	/// Numer of Records that are hold by this result
-	public $number_of_records = 0; // should be private, with getter
-
-	/// this is an array that will hold booleans.
-	private $record_already_generated;
-	
-	/// The database that belongs to this result
-	public $database;
-
-	/// COMMON CONSTRUCTOR. A database can afterwards set
-	/// $abstract_records and $number_of_records manually.
-	function __construct(MsDatabase $source_database, array $record_list=Null) {
-		if($record_list) {
-			$this->is_sparse = false;
-			$this->number_of_records = count($record_list);
-			$this->records = $record_list;
-
-			// just to make sure -- perhaps no more needed
-			foreach($this->records as $record) {
-				$record->database = $source_database;
-			}
-		} else {
-			$this->is_sparse = true;
-			$this->set_sparse_number(0);
-		}
-		$this->database = $source_database;
-	}
-
-	/// How many (sparse) records this result contains
-	public function set_sparse_number($x) {
-		if($x <= 0) {
-			$this->number_of_records = $x;
-			$this->record_already_generated = array();
-		} else {
-			$this->number_of_records = $x;
-			$this->record_already_generated = array_fill(0, $x, false);
-		}
-	}
-
-	/// Perhaps no more needed.
-	function add($title, $url, $desc='[None given]') {
-		$this->records[] = new MsRecord($title,$url,$desc);
-	}
-
-	/// This should be used to get ANY record.
-	function get_record($id) {
-		if(! $this->record_already_generated[$id]) {
-			$this->records[$id] = $this->database->generate_record($id, $this);
-			if(!isset($this->records[$id])) {
-				throw new MWException("Database ".$this->database." did not generate record $id!");
-			}
-			$this->record_already_generated[$id] = true;
-		}
-		return $this->records[$id];
-	}
-
-	/// get a slice array of records
-	function get_records($start, $end) {
-		if($this->is_sparse) {
-			$back = array();
-			for($x=$start; $x<$end && $x < $this->number_of_records-1; $x++) {
-				$back[] = $this->get_record($x);
-			}
-			return $back;
-		} else {
-			return array_splice($this->records, $start, $end);
-		}
-	}
-}
-
-/**
  * The MsRecord class is a generic output element that
  * contains data that can be formatted and printed out
  * to the wiki in a list.
  **/
 class MsRecord {
-	/// The title/heading of the record
-	public $title;
-	/// The URL the user can go to
-	public $url;
-	/// A short description
-	public $desc;
+	// the type of record:
+	public $type = false;
 
 	// and more things for merger, etc. process:
 	public $database;
@@ -210,8 +170,9 @@ class MsRecord {
 	// every record, so keep it simple:
 	public $data;
 
-	function __construct($database) {
+	function __construct($database, $type=false) {
 		$this->database = $database;
+		$this->set_type($type);
 	}
 
 	// nobody needs this constructor:
@@ -223,12 +184,21 @@ class MsRecord {
 	}
 */
 
+	function set_type($t) {
+		$this->type = $t;
+	}
+
+	function get_type() {
+		return $this->type; # default: false.
+	}
+
 	function set_data($key, $value) {
-		$this->data['{{{'.$key.'}}}'] = $value;
+		//$this->data['{{{'.$key.'}}}'] = $value;
+		$this->data[$key] = $value;
 	}
 
 	function get_data($key, $value) {
-		$key = '{{{'.$key.'}}}';
+		//$key = '{{{'.$key.'}}}';
 		if(isset($this->data[$key]))
 			return $this->data[$key];
 		else

@@ -1,13 +1,32 @@
 <?php
 /**
- * This MsPage will be seen most of the time: It's the central
- * page that displays the query form and everything around that.
+ * MediaWiki MetaSearch Extension
+ * class MsQueryPage
+ * 
+ * The MsQueryPage is directly called by the SpecialClass when
+ * the extension is called via Special:Metasearch by the user.
+ * It manages user input (MsSearchMask) and Result output.
  *
+ * (c) Copyright 2009 Sven Koeppel
  *
+ * This program is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General
+ * Public License along with this program; if not, see
+ * http://www.gnu.org/licenses/
  **/
 
 error_reporting(E_ALL);
-
 
 class MsQueryPage extends MsPage {
 	public $controller;
@@ -64,28 +83,32 @@ class MsQueryPage extends MsPage {
 		}
 
 		# Perform search...
-		$records = $this->controller->execute();
+		$result = $this->controller->execute();
 
-		#$this->dump($records);
+		#$this->dump($result->get_records());
 
-		if(empty($records))
+		if($result->is_empty())
 			$this->search_mask->assistant_status = 'sad';
+		else if($result->is_success())
+			$this->search_mask->assistant_status = 'success';
 
 		$this->search_mask->status = MsSearchMask::$status_post;
 		$this->search_mask->print_out();
 
-		if(!empty($records)) {
+		if( $result->is_success() ) {
+			$wgOut->addWikiText("==Success!==");
+			$wgOut->addWikiText( $result->__toString() );
+		} else if(! $result->is_empty() ) {
 			$wgOut->addWikiText("==Suchergebnisse==");
 			#var_dump($records); exit();
-			foreach($records as $rec) {
-				$wgOut->addWikiText($rec->__toString());
-			}
+			$wgOut->addWikiText( $result->__toString() );
 		} else {
-			$msg = 'Ms-bad-'.$this->search_mask->get_top_cat()->id.'-search';
-			if(wfMsgExists($msg))
-				$wgOut->addWikiText( wfMsg($msg) );
-			else
-				$wgOut->addWikiText( wfMsg('Ms-bad-search') );
+			$wgOut->addWikiText(
+				wfMsgFallback(
+					'Ms-bad-'.$this->search_mask->get_top_cat()->id.'-search',
+					'Ms-bad-search'
+				)
+			);
 		}
 
 		# we're done.
