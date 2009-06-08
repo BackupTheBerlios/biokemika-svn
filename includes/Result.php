@@ -68,7 +68,7 @@ class MsResult {
 	private $records = array();
 
 	function __construct(array $record_list=Null) {
-		$this->set_records($record_list);
+		if($record_list) $this->set_records($record_list);
 	}
 
 	public function set_records(array $record_list) {
@@ -183,14 +183,10 @@ class MsSparseResult extends MsResult {
 	/// Use as ->get_records() to get all records, rendered.
 	function get_records($start=0, $end=null) {
 		if(!$end)   $end = $this->number_or_records-1;
-		if($this->is_sparse) {
-			$back = array();
-			for($x=$start; $x<$end && $x < $this->number_of_records-1; $x++) {
-				$back[] = $this->get_record($x);
-			}
-			return $back;
-		} else {
-			return array_splice($this->records, $start, $end);
+		$back = array();
+		for($x=$start; $x<$end && $x < $this->number_of_records-1; $x++) {
+			$back[] = $this->get_record($x);
 		}
+		return $back;
 	}
 } 

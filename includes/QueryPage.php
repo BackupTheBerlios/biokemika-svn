@@ -29,33 +29,137 @@
 error_reporting(E_ALL);
 
 class MsQueryPage extends MsPage {
-	public $controller;
-	public $search_mask;
+	#public $controller;
+	#public $search_mask;
+
+	/// User input data
+	public $ms_query;
+	public $ms_category_stack;
+	public $ms_input_databases;
+
 
 	/**
 	 * Read in and validate user input. This method will take
 	 * the user input from the MediaWiki globale $wgRequest.
-	 * @exception MWException when some user input was bad.
+	 * @exception MsException when some user input was bad.
 	 * @return Nothing interesting (if no exception)
 	 **/
 	function validate_user_data() {
 		global $wgRequest, $msCategories;
 
-		$this->controller->input_keywords = $wgRequest->getText('ms_query');
-		if(empty($this->controller->input_keywords)) {
-			throw new MWException('Input text may not be empty.');
+		$this->ms_query = $wgRequest->getText('ms_query');
+		if(empty($this->ms_query)) {
+			throw new MsException('Please enter an input text.',
+				MsException::BAD_INPUT);
 		}
 
-		$this->controller->input_category = strtolower(array_pop($wgRequest->getArray('ms_cat')));
-		if(empty($this->controller->input_category) || !MsCategoryFactory::exists($this->controller->input_category)) {
-			//if(!isset($msCategories[$this->controller->input_category])) {
-			throw new MWException('<b>'.htmlspecialchars($this->controller->input_category).'</b>: Invalid Category');
-		}
+		// try{ } catch(MsException e) { }-Konstrukt um das hier:
+		$this->ms_category_stack = new MsCategoryStack( $wgRequest->getArray('ms_cat') );
 
-		$cat = new MsCategory($this->controller->input_category);
-		$this->controller->input_databases = $cat->get_databases();
+		if( $this->ms_category_stack->get_top()->is_root() ) {
+			throw new MsException('Please select a category.',
+				MsException::BAD_INPUT);
+		} else if( ! $this->ms_category_stack->get_top()->has_databases() ) {
+			throw new MsException('Please select a category that has databases!',
+				MsException::BAD_INPUT);
+		}
 
 		return true;
+	}
+
+	/**
+	 * The really "controller like" function that will
+	 * execute the query according to the ms_ class variables.
+	 **/
+	public function execute_query() {
+		/// 1. Get top category of the stack
+		$cat = $this->ms_category_stack->get_top();
+		/// 2. Create databases
+		$dbs = $this->ms_category_stack->get_top()->get_databases(MsCategory::AS_OBJECTS);
+		/// 4. Create queries
+		$queries = MsQuery::create_for_databases($this, $dbs);
+		#var_dump($queries); exit(0);
+		/// 5. Create a good dispatcher
+		$dispatcher = MsDispatcher::get_instance($queries);
+		/// 6. Run dispatcher (will run queries and create results)
+		$results = $dispatcher->run($queries);
+		#var_dump($results); exit(0);
+		/// 7. Merge results
+		$master_result = $this->merge($results);
+		return $master_result;
+	}
+
+	/**
+	 * Merge all MsResult entries together to one new big
+	 * MsResult.
+	 **/
+	function merge(array $results) {
+		global $msConfiguration;
+
+		//var_dump($results); exit();
+		$out = array(); # the MsRecord list for (almost) output
+		$out = $results[0]->get_records(0, 20);
+		for(;0!=0;) {
+		//foreach($results as $result) {
+			# handel one result from one database.
+			if(count($msCategories[$this->input_category]) == 1) {
+				# its a simple category: only one database.
+				$out = $result->get_records(0, $msCategoryHits[$this->input_category]);
+			} else {
+				# multi database category.
+				$cur_relevance = 0;
+				$cur_priority = 0;
+				# search the corresponding database in current cat
+				foreach($msCategories[$this->input_category] as $db) {
+					if($db[0] == $result->database->id) {
+						$cur_relevance = $db[2];
+						$cur_priority = $db[1];
+						break;
+					}
+				}
+				# look if we've found the database
+				if(!$cur_relevance)
+					throw new MWException('Configuration Integrity errnous.');
+
+				# now compute how much records this result may
+				# contribute:
+				$hits = round( $msCategoryHits[$this->input_category]
+					* $cur_priority );
+				# and get these records
+				$this_out = $result->get_records(0, $hits);
+
+				# now calculate the new relevance of each record
+				# NOTE: This is stupid.
+				foreach($this_out as $record) {
+					$record->relevance = $cur_relevance * $record->relevance;
+				}
+
+				# and sort the records after their new relevance
+				# since we don't know if they were sorted before
+				# (do we?) -- YES WE'LL ASSUME EXACTLY *THAT*
+				//usort($this_out, array('MsRecord','cmp_relevance'));
+
+				# and add our {$hits} best records:
+				#print "BEFORE MERGING RECORDS:"; var_dump($result->records);
+				$out = array_merge($out, $this_out);
+					//array_slice($result->records, 0, $hits));
+			} // multi db cat
+		} // foreach
+
+		# no we've got exatly ${msCategoryHits[$this->input_category]}
+		# hits in our $out array, but not neccessarily sorted. So sort'em:
+		usort($out, array('MsRecord', 'cmp_relevance'));
+
+		# and as last but not least: Give every record a number, for
+		# output numbering. Just as a quick and dirty solution.
+		$x = 1;
+		foreach($out as $rec) {
+			$rec->set_data('number', $x++);
+		}
+
+		# we're done.
+		$out_result = new MsResult($out);
+		return $out_result;
 	}
 
 	function execute( $par ) {

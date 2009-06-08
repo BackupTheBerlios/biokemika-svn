@@ -34,26 +34,54 @@
 
 error_reporting(E_ALL);
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+////////////////////      CATEGORY FACTORY     ////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 /**
  * The CategoryFactory is a bit quick & dirty like, since it also manages
  * some "almost global" functions on Categories, like category tree and
  * category stack handling.
  **/
 class MsCategoryFactory {
+	/**
+	 * Checks whether a category with this name exists, that is, if it
+	 * is set up or not. A Category is defined to be set up when there
+	 * exists an appropriate MediaWiki configuration page for that category.
+	 * @param $name String: Name of the category. Case sensitive!
+	 **/
 	public static function exists($name) {
 		return wfMsgExists("ms-${name}-category");
 	}
 
+	/**
+	 * Get *the* fully featured root category object. You should save your
+	 * root category object somewhere, since this is not a singleton, but
+	 * a very ordinary object that is created on each call.
+	 * @returns A new Root Category object (MsCategory).
+	 **/
 	public static function get_root_category() {
 		global $msConfiguration;
 		return self::get_category($msConfiguration['root-category-name']);
 	}
 
-	// just an alias for `new MsCategory($name)`
+	/**
+	 * An alias for new MsCategory($name). Nothing more.
+	 * @param $id String: Name of the category.
+	 **/
 	public static function get_category($id) {
 		return new MsCategory($id);
 	}
 
+	/**
+	 * A performant shorthand to get only the full name of a category.
+	 * This will only parse quickly the corresponding mediawiki message
+	 * and return the full name, if found.
+	 * @param $id String: Name of the category.
+	 * @return String: Full Name of category
+	 **/
 	// this is a perfomant shorthand to get only the name of a category (id).
 	public static function get_category_name($id) {
 		$msg = wfMsg("ms-${id}-category");
@@ -61,58 +89,130 @@ class MsCategoryFactory {
 			return $matching[1];
 		else	return $id.' (nameless)';
 	}
+}
 
-	// this will create a stack, where the ROOT category *IS* the
-	// very first one.
-	public static function get_category_stack($array_of_names) {
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+////////////////////      CATEGORY STACK       ////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class MsCategoryStack {
+	/// Configuration: The root category name
+	static $root_category_name;
+
+	// data
+	private $array = array();
+
+	/**
+	 * @param $array_of_names Create stack from array of names
+	 **/
+	function __construct($array_of_names=Null) {
+		// setup config:
 		global $msConfiguration;
-		if(!is_array($array_of_names))
-			$array_of_names = array();
-		if(empty($array_of_names) || $array_of_names[0] != $msConfiguration['root-category-name'])
-			array_unshift($array_of_names, $msConfiguration['root-category-name']);
+		self::$root_category_name = $msConfiguration['root-category-name'];
 
-		foreach($array_of_names as $k => $v) {
-			$array_of_names[$k] = new MsCategory($v);
-		}
-
-		return $array_of_names;
+		if($array_of_names)
+			$this->from_string_array($array_of_names);
+		else
+			$this->clean(); // will initialize the stack somewhat (add root)
 	}
 
-	// check stack for inheritance consistency, return a clean stack from
-	// the top to at least the errorous position
-	public static function clean_category_stack($stack) {
+	/// @returns nothing.
+	function from_string_array($array_of_names) {
 		global $msConfiguration;
+		if(!is_array($array_of_names))
+			$this->array = array();
+		if(empty($array_of_names) || $array_of_names[0] != self::$root_category_name)
+			array_unshift($array_of_names, self::$root_category_name);
 
+		foreach($array_of_names as $k => $v) {
+			if(! MsCategoryFactory::exists($v))
+				throw new MsException("MsCategoryStack: Category <i>$v</i> doesn't exist.",
+					MsException::BAD_CONFIGURATION);
+			$this->array[$k] = new MsCategory($v);
+		}
+
+		// clean category stack.
+		$this->clean();
+	}
+
+	/**
+	 * Create a part from a HTTP Query based on these data
+	 *
+	 **/
+	function build_query($arg_name='ms_cat') {
+		# http_build_query does not do the job
+		$r = array();
+		foreach($this->array as $v) {
+			$r[] = $arg_name.'[]='.$v->id;
+		}
+		return implode('&', $r);
+	}
+
+	/**
+	 * check stack for inheritance consistency, repair the stack internally -- 
+	 * that is, set $this->array to the top to at least the errorous position
+	 **/
+	function clean() {
 		// trivial case.
-		if(empty($stack)) return $stack;
+		if(empty($this->array)) {
+			// add a root
+			$this->array[] = MsCategoryFactory::get_root_category();
+			return;
+		}
 
 		// check root
-		if($stack[0]->id != $msConfiguration['root-category-name'])
+		if($this->array[0]->id != self::$root_category_name)
 			// the root was bad.
-			array_unshift($stack, $msConfiguration['root-category-name']);
+			array_unshift($this->array[0], MsCategoryFactory::get_root_category());
 
 		// walk down stack from the TOP until almost-root
-		for($x = count($stack)-1; $x >= 1; $x--) {
+		for($x = count($this->array)-1; $x >= 1; $x--) {
 			// if the top element is not a child from the one below...
-			if(! $stack[$x-1]->has_sub_category($stack[$x])) {
+			if(! $this->array[$x-1]->has_sub_category($this->array[$x])) {
 				// ... then kill it.
-				array_pop($stack);
+				array_pop($this->array);
 			}
 		}
 
 		// stack is clean.
-		return $stack;
+	}
+
+	/// @returns the size of the stack
+	function count() {
+		return count($this->array);
+	}
+
+	/// @returns the nth element of the stack (starting with 0, root).
+	function get($x) {
+		return $this->array[$x];
+	}
+
+	/// @returns get the category on the top.
+	function get_top() {
+		return $this->array[ count($this->array) - 1 ];
 	}
 }
 
-class MsCategory {
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+////////////////////      CATEGORY             ////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class MsCategory extends MsMsgConfiguration {
 	public $id;
 	private $dummy; // if there doesn't exist such a category
 	/// Never access this directly, use only get and set. Direct access
 	/// only for friends (Ms prefix classes).
-	public $conf; # configuration array => use get_conf_array from external
-	public $conf_msg; # the parsed wfMsg that holds the configuration
+	#public $conf; # configuration array => use get_conf_array from external
+	#public $conf_msg; # the parsed wfMsg that holds the configuration
 	public $subs; # sub category object array
+
+	/// For usage with get_databases, get_sub_categories
+	const AS_OBJECTS = true;
+	const AS_STRINGS = false;
 
 	// if name == false => ROOT category.
 	public function __construct($id) {
@@ -125,45 +225,29 @@ class MsCategory {
 			$this->read_configuration($msg);
 	}
 
-	// read in the config of this database
-	private function read_configuration($message) {
-		$lines = explode("\n", wfMsg($message));
-		$this->conf_msg = wfMsg($message); # for later use.
-		foreach($lines as $line) {
-			if(!preg_match('/^\s*(.+?):\s*(.+)$/i', $line, $matching))
-				// TODO: parsing errors should not be fatal
-				throw new MWException("Error: $message has bad Mscategory format!");
-			$this->conf[ strtolower($matching[1]) ] = $matching[2];
+	// get the identifiers of the named databases OR
+	// get the OBJECTS.
+	public function get_databases($as_objects=self::AS_STRINGS) {
+		$name_array = $this->get_array($this->has_set('db')?'db':'dbs');
+		if($as_objects == self::AS_STRINGS)
+			return $name_array;
+		else {
+			$object_array = array();
+			foreach($name_array as $name) {
+				$object_array[] = new MsDatabase($name);
+			}
+			return $object_array;
 		}
 	}
 
-	// parse and get configuration key as array.
-	// Key has to be built up like: a, b, c
-	public function get_array($conf_key) {
-		if(! $this->has_set($conf_key))
-			// there are no sub categories
-			return array();
-		else if(!is_array($this->conf[$conf_key])) {
-			// key has not been parsed yet
-			$this->conf[$conf_key] = array_map('trim', explode(', ', $this->conf[$conf_key]) );
-		}
-		return $this->conf[$conf_key];
+	public function has_databases() {
+		$dbs = $this->get_array($this->has_set('db')?'db':'dbs');
+		#var_dump($dbs,!empty($dbs));exit();
+		return !empty($dbs);
 	}
 
-	public function has_set($conf_key) {
-		return isset($this->conf[$conf_key]);
-	}
-
-	public function get($conf_key) {
-		return $this->has_set($conf_key) ? $this->conf[$conf_key] : false;
-	}
-
-	// get the identifiers of the named databases
-	public function get_databases() {
-		 return $this->get_array($this->has_set('db')?'db':'dbs');
-	}
-	public function get_sub_categories($as_objects=false) {
-		if(!$as_objects)
+	public function get_sub_categories($as_objects=self::AS_STRINGS) {
+		if($as_objects == self::AS_STRINGS)
 			return $this->get_array('sub');
 		else if(!isset($this->subs)) {
 			// create subs
@@ -235,6 +319,11 @@ HTML
 		return strtolower($this->get('input')) != 'none';
 	}
 
+	/// Is this category the root category?
+	public function is_root() {
+		global $msConfiguration;
+		return $this->id == $msConfiguration['root-category-name'];
+	}
 
 	function get_box($area='presearch') {
 		return wfMsg('ms-'.$this->id."-${area}-box");

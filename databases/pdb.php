@@ -26,7 +26,7 @@ class MsDatabase_pdb extends MsDatabase {
 	}
 
 	public function execute(MsQuery $query) {
-		$result = new MsResult($this);
+		$result = new MsSparseResult($this);
 		$result->abstract_records = $this->soap_client->call('keywordQuery', array('in0' => $query->keyword, 'in1' => false, 'in2' => false));
 		$result->set_sparse_number( count($result->abstract_records) );
 

@@ -32,6 +32,8 @@
  *
  **/
 
+error_reporting(E_ALL);
+
 # Not a valid entry point, skip unless MEDIAWIKI is defined
 if (!defined('MEDIAWIKI'))
 	die('Not a valid entry point!');
@@ -53,6 +55,7 @@ $wgExtensionCredits['specialpage'][] = array(
 $dir = dirname(__FILE__);
 
 $msConfiguration = array(
+	'proxy-entry-point' => '/extensions/metasearch/proxy.php',
 	'default-record-message' => 'Ms-record',
 	'root-category-name'  => 'root',
 	'database_dir' => $dir.'/databases', 
@@ -61,6 +64,12 @@ $msConfiguration = array(
 // this has to be filled by the database driver files. It should
 // be used like $wgExtensionCredits above.
 $msDatabaseCredits = array('database', 'driver');
+# <- DEPRECATED!
+
+global $msDatabaseDriver;
+
+# Use this instead:
+$msDatabaseDriver = array();
 
 ### END OF CONFIGURATION ###
 $wgExtensionMessagesFiles['Metasearch'] = "$dir/MetaSearch.i18n.php";
@@ -82,10 +91,23 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 
 	'MsCategory' => "$dir/includes/Category.php",
 	'MsCategoryFactory' => "$dir/includes/Category.php",
+	'MsCategoryStack' => "$dir/includes/Category.php",
 
 	'MsDispatcher' => "$dir/includes/Dispatcher.php",
 
 	'MsListPage' => "$dir/includes/ListPage.php",
 	'MsQueryPage' => "$dir/includes/QueryPage.php",
 	'MsSearchMask' => "$dir/includes/SearchMask.php",
+
+	'MsChooserPage' => "$dir/includes/ChooserPage.php",
+	'MsChooserTemplate' => "$dir/includes/ChooserTemplate.php",
+	'MsException' => "$dir/includes/Controller.php",
+	'MsMsgConfiguration' => "$dir/MetaSearch_body.php", # for other entrypoints
+	'MsQuickTemplate' => "$dir/includes/ChooserTemplate.php",
+
+	'MsDriver' => "$dir/includes/Database.php",
+	'MsProxyDatabaseDriver' => "$dir/includes/ProxyDatabase.php",
+	'MsProxyTemplate' => "$dir/includes/ProxyPage.php",
+	'MsProxyPage' => "$dir/includes/ProxyPage.php",
+
 );

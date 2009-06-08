@@ -46,7 +46,7 @@ error_reporting(E_ALL);
  **/
 abstract class MsDispatcher {
 	/**
-	 * Creates an instance that fits best to the querie
+	 * Creates an instance that fits best to the query
 	 * array.
 	 **/
 	static function get_instance($queries) {
