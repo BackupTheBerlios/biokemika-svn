@@ -63,8 +63,8 @@ $msConfiguration = array(
 
 // this has to be filled by the database driver files. It should
 // be used like $wgExtensionCredits above.
+/// @DEPRECATED
 $msDatabaseCredits = array('database', 'driver');
-# <- DEPRECATED!
 
 global $msDatabaseDriver;
 

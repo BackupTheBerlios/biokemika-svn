@@ -243,7 +243,13 @@ function wfMsgFallback($name, $fallback_name) {
 
 /********************* MsgConfiguration ****************************/
 class MsMsgConfiguration {
+	/// The Configuration array
 	public $conf = array();
+	/// true or false, if key in $conf array is "multi", that is
+	/// consists of an array instead of a single value. This is
+	/// not only true or false but also the length of that array,
+	/// but that's not that important.
+	private $conf_multi = array();
 	public $conf_msg; ///<- String: Message id
 	public $conf_text;
 	
@@ -255,15 +261,64 @@ class MsMsgConfiguration {
 	public function read_configuration($message=false) {
 		$lines = explode("\n", wfMsg($message));
 		$this->conf_text = wfMsg($message); # for later use.
+		# last top level entry
+		$last_top_level = Null;
+
 		foreach($lines as $line) {
-			if(!preg_match('/^\s*(.+?):\s*(.+)$/i', $line, $matching))
-				// TODO: parsing errors should not be fatal
-				// DONE: Now they are not. *g*
-				return false;
+			if(!preg_match('/^\s*(\*?)\s*(.+?)(\*?):\s*(.*)$/i', $line, $m)) {
+				// Issue: Should parsing errors be fatal?
+				#return false;
+				// perhaps we should just go on?
+				continue;
 				#throw new MWException("Error: $message has bad MsMsgConfiguration format!");
-			$this->conf[ strtolower($matching[1]) ] = $matching[2];
-		}
-	}
+			}
+
+			$sub_level = !empty($m[1]);
+			$key = strtolower($m[2]);
+			$multi_entry = !empty($m[3]);
+			$val = $m[4];
+
+			// Yes, both sub_level and multi_entry (=array entry) implementions
+			// *ARE* Quick & Dirty. Stupid, but quickly implemented.
+			if(! $sub_level) {
+				# normal top level entry
+				if(!isset($this->conf_multi[$key]))
+					$this->conf_multi[$key] = 0;
+				if($multi_entry) {
+					if(! isset($this->conf[$key]))
+						$this->conf[$key] = array();
+					$this->conf[$key][] = $val;
+					$this->conf_multi[$key]++;
+				} else {
+					// single entry
+					$this->conf[$key] = $val;
+				}
+				$last_top_level = $key;
+			} else {
+				# sub level entry
+				# it's intended to throw away the old contents of the
+				# top level entry (that is, the parent shall not have
+				# content)
+				if(!$last_top_level)
+					throw new MsException("MediaWiki:$message starts with sub item.",
+						MsException::BAD_CONFIGURATION);
+				if(!isset($this->conf[$last_top_level]))
+					throw new MsException("MediaWiki:$message parsing: $last_top_level hasn't been stored correctly");
+				if($this->conf_multi[$last_top_level]) {
+					$last_index = $this->conf_multi[$last_top_level] - 1;
+					if(!isset($this->conf[$last_top_level][$last_index]))
+						$this->conf[$last_top_level][$last_index] = array();
+					$this->conf[$last_top_level][$last_index][$key] = $val;
+				} else {
+					if(!is_array($this->conf[ $last_top_level ]))
+						$this->conf[ $last_top_level ] = array();
+					$this->conf[ $last_top_level ][$key] = $val;
+				}
+			} // if ! $sub_level
+		} // for lines
+
+		#var_dump($this->conf, $this->conf_multi);
+	} // function read_configuration
 
 	// parse and get configuration key as array.
 	// Key has to be built up like: a, b, c
@@ -282,8 +337,19 @@ class MsMsgConfiguration {
 		return isset($this->conf[$conf_key]);
 	}
 
-	public function get($conf_key) {
-		return $this->has_set($conf_key) ? $this->conf[$conf_key] : false;
+	public function get($conf_key, $nonexistent=false) {
+		return $this->has_set($conf_key) ? $this->conf[$conf_key] : $nonexistent;
+	}
+
+	public function get_sub($conf_key, $sub_key, $nonexistent=false) {
+		if(!isset($this->conf_multi[$conf_key])) return $nonexistent;
+		if(!$this->conf_multi[$conf_key]) return $nonexistent;
+		if(!isset($this->conf[$conf_key][$sub_key])) return $nonexistent;
+		return $this->conf[$conf_key][$sub_key];
+	}
+
+	public function is_multi($conf_key) {
+		return $this->conf_multi[$conf_key];
 	}
 
 	/// Use with care...

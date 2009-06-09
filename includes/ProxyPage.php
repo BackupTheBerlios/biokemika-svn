@@ -49,8 +49,7 @@ class MsProxyPage extends MsPage {
 		$database = $dbs[0];
 
 		# like in proxy.php
-		$database->set('proxify_url_add',
-			$database->build_query('ms-db').'&'.$cat_stack->build_query('ms-cat'));
+		$database->driver->set_cat_stack($cat_stack);
 
 		$template = new MsProxyTemplate();
 		# eigentlich unnoetig:

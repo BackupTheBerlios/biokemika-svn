@@ -193,6 +193,11 @@ class MsCategoryStack {
 	function get_top() {
 		return $this->array[ count($this->array) - 1 ];
 	}
+
+	/// @returns all Categories (that is, the array).
+	function get_all() {
+		return $this->array;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,6 +243,12 @@ class MsCategory extends MsMsgConfiguration {
 			}
 			return $object_array;
 		}
+	}
+
+	/// Eigentlich nur fuer Testzwecke: die erste DB kriegen.
+	public function get_one_database($as_object=self::AS_STRINGS) {
+		$dbs = $this->get_databases($as_object);
+		return empty($dbs) ? Null : $dbs[0];
 	}
 
 	public function has_databases() {

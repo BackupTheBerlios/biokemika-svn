@@ -10,6 +10,55 @@ error_reporting(E_ALL);
 // 3) Get References and URLs via eLink
 // etc.
 
+global $msDatabaseDriver;
+$msDatabaseDriver['pubmed'] = array(
+	'class' => 'MsPubMedDatabaseDriver',
+	'view' => 'MsProxyPage',
+	'author' => 'Sven Koeppel',
+	'version' => '$Id$',
+	'description' => 'PubMed simple rewrites',
+);
+
+class MsPubMedDatabaseDriver extends MsProxyDatabaseDriver {
+	// you've got
+	// $this->rewrite_url
+	// $this->rewrite_content
+	// now start. ;-)
+	function rewrite_execute() {
+		/*$this->rewrite_content = preg_replace_callback(
+			'#http://www.sigmaaldrich.com#i',
+			array(&$this, 'sa_rewrite'),
+			$this->rewrite_content
+		);
+		*/
+		#$this->rewrite_content = preg_replace()
+	}
+
+	function rewrite_before() {
+		if($this->rewrite_url == 'http://www.ncbi.nlm.nih.gov/portal/js/portal.js') {
+			$this->rewrite_content = str_replace(
+				'document.cookie=x+"nlm.nih.gov"',
+				'document.cookie=x+"biokemika.svenk.homeip.net"',
+				$this->rewrite_content
+			);
+			return false;
+		}
+
+		// this works too:
+		/*
+		$skip_urls = array(
+		);
+		if(in_array($this->rewrite_url, $skip_urls))
+			// skip
+			return false;
+		*/
+		return true;
+	}
+}
+ 
+
+
+/*
 $msDriver['pubmed'] = array(
 	'class' => 'MsDatabase_pubmed',
 	'view' => 'MsQueryPage',
@@ -138,9 +187,9 @@ class MsDatabase_pubmed extends MsDatabase {
 		// since records was something like PUBMED_ID => record
 		return array_values($records);
 	}
-
-
 }
+
+*/
 
 
 

@@ -19,6 +19,10 @@ class MsProxyDatabaseDriver extends MsDriver {
 	const ALLOW_URL_TYPE_DOMAIN = 'domain';
 	const ALLOW_URL_TYPE_WILDCARD = 'wildcard';
 
+	private $cat_stack = Null;
+	// cached for faster computation
+	private $proxify_url_add = '';
+
 	function init() {
 		// check parameters
 		$this->database->set_default('start_url',   'http://www.google.de');
@@ -27,9 +31,13 @@ class MsProxyDatabaseDriver extends MsDriver {
 		$this->database->set_default('allow_url', $start_url_parsed['host']);
 		$this->database->set_default('allow_url_type',
 			self::ALLOW_URL_TYPE_DOMAIN);
+	}
 
-		# for internal use variables
-		$this->database->set_default('proxify_url_add', 'dummy_proxifyurladd=1');
+	/// this is quite important...
+	public function set_cat_stack(MsCategoryStack $stack) {
+		$this->cat_stack = $stack;
+		$this->proxify_url_add = 
+			$this->database->build_query('ms-db').'&'.$stack->build_query('ms-cat');
 	}
 
 	/// Transform Real-world URL to Proxified URL
@@ -44,7 +52,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 		global $msConfiguration;
 		return  $msConfiguration['proxy-entry-point'].
 			'?action=view&'.
-			$this->database->get('proxify_url_add').
+			$this->proxify_url_add.
 			'&ms-url='.
 			urlencode( $url );
 	}
@@ -68,54 +76,150 @@ class MsProxyDatabaseDriver extends MsDriver {
 		}
 	}
 
-	function get_assistant_script($url) {
+	private function get_assistant_script() {
 		// script injection
-		$assistant_text = Xml::escapeJsString( "this page: $url" );
-		$assistant = Xml::escapeJsString( wfMsg('ms-assistant-happy') );
+		$trigger_id = $this->dispatch_trigger();
+		$trigger = $this->database->get('trigger');
+		$trigger = $trigger[$trigger_id];
+
+		// get assistant text
+		if(isset($trigger['assistant_msg']))
+			$assistant_text = wfMsg('assistant_msg');
+		else if(isset($trigger['assistant_text']))
+			$assistant_text = $trigger['assistant_text'];
+		else
+			$assistant_text = "Trigger $trigger_id matches, but there's no assistant text.";
+
+		// get assistant
+		if(isset($trigger['assistant']))
+			$assistant = wfMsg($trigger['assistant']);
+		else
+			$assistant = 'default assistant';
+
+		$assistant_text = Xml::escapeJsString( $assistant_text );
+		$assistant = Xml::escapeJsString( $assistant );
 		return <<<EOF
 <script type="text/javascript">
 /*<![CDATA[*/
 	// MediaWiki MetaSearch Assistant Wakeup
 	// Code injection by MsProxyDatabaseDriver
-	window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
+	try {
+		window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
+	} catch(e) {} // for testing...
 /*]]>*/
 </script>
 EOF;
-		
+	}
+
+	/// @returns The ID in the $this->database->get('trigger') array,
+	///          if nothing found, false.
+	private function dispatch_trigger() {
+		foreach($this->database->get('trigger') as $_id => $trigger) {
+			extract($trigger); # a bit of PHP magic ;-)
+			if(isset($url)) {
+				if(preg_match($url, $this->rewrite_url))
+					return $_id;
+			}
+		}
+		// nothing found!
+		return false;
 	}
 
 	/// The real rewriting page thingy
 	public $rewrite_url = Null;
+	public $rewrite_content = Null;
 	function rewrite_page( $url, &$content ) {
 		$this->rewrite_url = $url; # for global access
+		$this->rewrite_content =& $content; # for global rw(!) access
+
+		if(!$this->rewrite_before())
+			return;
+
+		# 1. Hook before <body> tag
 		$content = preg_replace(
-			'#<body#i',
-			$this->get_assistant_script($url).'<body',
+			'#<\s*body\s#i',
+			$this->get_assistant_script()."\n<body ",
 			&$content
 		);
+
+		# 2. General URL rewriting
 		$content = preg_replace_callback(
 			# this is all the core magic ;-) :
-			'#(<\s*(a|script|style|link|iframe|object|img|form).+(?:href|src|url|background|codebase|archive|action)=["\'])(.+?)(["\'].+?>)#i',
+			'#(<\s*(a|script|style|link|i?frame|object|img|form).+?(?:href|src|url|background|codebase|archive|action)=[\\\\"\']+)(.+?)(["\'\\\\]+.+?>)#si',
 			array(&$this, 'rewrite_link_helper'),
 			&$content
 		);
-		# for CSS thingies:
+
+		# 3. URL rewriting in CSS (inline or CSS files)
 		$content = preg_replace_callback(
-			'#((url)\()(.+?)(\))#i',
+			'#((url)\()(.+?)(\))#si',
 			array(&$this, 'rewrite_link_helper'),
 			&$content
 		);
+
+		# 4. Hook for <form> tag
+		$content = preg_replace_callback(
+			'#<\s*form.+?>#si',
+			array(&$this, 'rewrite_form_helper'),
+			&$content
+		);
+
+		$this->rewrite_execute();
 	}
+
+	/// To be overwritten by extending classes.
+	public function rewrite_execute() { }
+
+	/// Like rewrite_execute, can do forework or
+	/// stop rewriting.
+	/// @returns true if rewrite process shall start
+	public function rewrite_before() { return true; }
 
 	/// Will rewrite URLs, evv. proxify them
 	private function rewrite_link_helper($m) {
 		// 1=pre, 2=tag name, 3=url, 4=post
 		$tag = strtolower($m[2]);
+		// javascript links or inner page links (hashes)
+		if(preg_match('/^javascript|^#/i', $m[3]))
+			return $m[0];
 		if($tag == 'img' || $tag == 'url') # url => CSS thing
 			return $m[1].resolve_url($this->rewrite_url, $m[3]).$m[4];
 		else
 			return $m[1].$this->proxify_url(
 				resolve_url($this->rewrite_url, $m[3])).$m[4];
+	}
+
+	/// Will attach own Input elements to Forms
+	// POST Form: The Get parameters in the action will already be interpreted correctly
+	// GET Form: The Get parameters in the action are ignored.
+	// In any case we'll add the parameters here via hidden elements
+	private function rewrite_form_helper($m) {
+		$r = $m[0];
+		$r .= '<input type="hidden" name="ms-db" value="'.$this->database->id.'">';
+		if(!$this->cat_stack) return $r;
+		foreach($this->cat_stack->get_all() as $cat) {
+			$r .= '<input type="hidden" name="ms-cat[]" value="'.$cat->id.'">';
+		}
+		return $r;
+	}
+
+	function strip_proxy_post_fields($post_array) {
+		// I wish there was an usable grep/map implemention in PHP ;-)
+		foreach($post_array as $k=>$v) {
+			if(preg_match('/^ms-/i', $k))
+				unset($post_array[$k]);
+		}
+		return $post_array;
+	}
+
+	/// can use $_COOKIES, if Null
+	function strip_cookies($cookie_array=Null) {
+		if(!$cookie_array) $cookie_array = $_COOKIE;
+		foreach($cookie_array as $k=>$v) {
+			if(preg_match('/BioKemika/i', $k))
+				unset($cookie_array[$k]);
+		}
+		return $cookie_array;
 	}
 }
 
