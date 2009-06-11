@@ -45,18 +45,6 @@ try {
 	return;
 }
 
-// now download the URL's contents. The behaviour is very simple...
-/*if(!empty($_POST)) {
-	// This was a POST call. So give them the data...
-	// could be a little complex
-	// stream_copy_contents ...
-	echo "Make POST Query.";
-	
-
-	return;
-} else {*/
-
-
 // make use of PECL-HTTP
 $request = new HttpRequest($url);
 $request->setHeaders(array(
@@ -129,7 +117,7 @@ foreach(array('Content-Type') as $name) {
 // well, that's our body
 $contents = $response->getBody();
 
-print $contents;
+//print $contents;
 
 	// Only a "simple" GET query
 	//$contents = file_get_contents($url);

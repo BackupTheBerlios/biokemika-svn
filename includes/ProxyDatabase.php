@@ -2,9 +2,137 @@
 
 error_reporting(E_ALL);
 
+/**
+ * Soll dann Konfiguration auslesen, von sowas wie
+ *   MediaWiki:ms-proxy-domains
+ * oder so, im Format
+ * 
+ * # Domain         Datenbank
+ * www.blo.bli                 # heisst: Ist erlaubt
+ * example.com      ncbi       # heisst: ncbi domain laden
+ * 
+ * Wenn keine Domain zugewiesen... dann... erfinden wir
+ * dafuer ne Default Configuration Message, die dem 
+ * Driver uebergeben wird.
+ **/
+class MsProxyConfiguration {
+	// the default database, must be installed like
+	// MediaWiki:ms-defaultproxy-database.
+	// You don't need such a thing unless you want
+	// proxify domains without any specific assisstant
+	// help.
+	const DEFAULT_DB = 'pubmed';
+
+	/// including trailing dot
+	public $proxy_domain = '.proxy.biokemika.svenk.homeip.net';
+	/// The config array
+	private $domains = array(
+		'nih.gov' => 'pubmed',
+		'expasy.ch' => self::DEFAULT_DB,
+		'ebi.ac.uk' => self::DEFAULT_DB,
+		'hprd.org' => self::DEFAULT_DB,
+		'pdb.org' => self::DEFAULT_DB,
+		'abcam.com' => self::DEFAULT_DB,
+		'itrust.de' => self::DEFAULT_DB,
+		'aist.go.jp' => self::DEFAULT_DB,
+		'atcc.org' => self::DEFAULT_DB,
+		'atcc.com' => self::DEFAULT_DB,
+		'wisc.edu' => self::DEFAULT_DB,
+		'ottobib.com' => self::DEFAULT_DB,
+
+		'svenk.homeip.net' => self::DEFAULT_DB
+	);
+
+	/// singleton pattern
+	private function __construct() {
+		// noch nicht parsen (keine Lust)
+		// sollte membervariablen setzen und so.
+	}
+
+	static private $singleton = Null;
+	function get_instance() {
+		if(!self::$singleton)
+			self::$singleton = new MsProxyConfiguration();
+		return self::$singleton;
+	}
+
+	function create_database($url) {
+		$parse = parse_url( $this->deproxify($url) );
+		return $this->create_database_for_domain($parse['host']);
+	}
+
+	/// @param $domain Any Domain Name
+	/// @returns MsDatabase
+	function create_database_for_domain($domain) {
+		$reg_domain = $this->get_registered_domain($domain);
+		if(!$reg_domain)
+			throw new MsException("$domain is not allowed to be proxified!");
+		if(empty($this->domains[$reg_domain]))
+			throw new MsException("No database given for $domain");
+		return new MsDatabase($this->domains[$reg_domain]);
+	}
+
+	// checks if url is allowed to be proxified
+	function is_allowed($url) {
+		$parse = parse_url($url);
+		return $this->is_allowed_domain($parse['host']);
+	}
+
+	// use in favour of is_allowed($url)
+	/// @param $domain Any domain name
+	function is_allowed_domain($domain) {
+		return ($this->get_registered_domain($domain) != Null);
+	}
+
+	// looks up a registered domain. E.g. $any_domain=www.google.de,
+	// in the domains array only "google.de", this will return google.de
+	// Returns Null if no domain registered.
+	/// @param $any_domain Any Domain name
+	/// @returns A registered domain (=key in $this->domains) or Null, if not found
+	function get_registered_domain($any_domain) {
+		$any_domain = strtolower($any_domain);
+		foreach($this->domains as $reg_domain => $v) {
+			if(strpos($any_domain, $reg_domain) !== false)
+				return $reg_domain;
+		}
+		return Null;
+	}
+
+	/// @return all registered domains
+	function get_all_domains() {
+		return array_keys($this->domains);
+	}
+
+	/// @return all registered domains, proxified
+	function get_all_domains_proxified() {
+		$r = array();
+		foreach(array_keys($this->domains) as $domain) {
+			$r[] = $domain . $this->proxy_domain;
+		}
+		return $r;
+	}
+
+	/// get deproxified = absolute url
+	function deproxify($url) {
+		return str_ireplace($this->proxy_domain, '', $url);
+	}
+
+	/// make absolute url to proxified url
+	function proxify($url) {
+		// http_bild_url in pecl-http (dependency for proxy part)
+		return http_build_url($url,
+			array('host' => parse_url($url, PHP_URL_HOST).$this->proxy_domain)
+		);
+	}
+
+	/// get request url, deproxified
+	function get_request_url() {
+		$host = str_ireplace($this->proxy_domain, '', $_SERVER['HTTP_HOST']);
+		return 'http://'.$host.$_SERVER['REQUEST_URI'];
+	}
+}
 
 // bereits global angemeldet
-
 /**
  * Central configuration keys for databases using the
  * proxydriver (will be autofilled if left empty)
@@ -15,100 +143,30 @@ error_reporting(E_ALL);
  *
  **/
 class MsProxyDatabaseDriver extends MsDriver {
-	const ALLOW_URL_TYPE_REGEX = 'regex';
-	const ALLOW_URL_TYPE_DOMAIN = 'domain';
-	const ALLOW_URL_TYPE_WILDCARD = 'wildcard';
-
-	private $cat_stack = Null;
-	// cached for faster computation
-	private $proxify_url_add = '';
+	public $conf; ///< just a local link to MsProxyConfiguration.
 
 	function init() {
-		// check parameters
+		// check and set default parameters
 		$this->database->set_default('start_url',   'http://www.google.de');
-		$this->database->set_default('proxy_base',  'blabla');
-		$start_url_parsed = parse_url($this->database->get('start_url'));
-		$this->database->set_default('allow_url', $start_url_parsed['host']);
-		$this->database->set_default('allow_url_type',
-			self::ALLOW_URL_TYPE_DOMAIN);
-	}
+		$this->database->set_default('domain',      'www.google.de');
 
-	/// this is quite important...
-	public function set_cat_stack(MsCategoryStack $stack) {
-		$this->cat_stack = $stack;
-		$this->proxify_url_add = 
-			$this->database->build_query('ms-db').'&'.$stack->build_query('ms-cat');
-	}
+		// Trigger initialisieren: Array mit Trigger-Objekten!
+		// Nicht hier, erst wenn man sie braucht.
 
-	/// Transform Real-world URL to Proxified URL
-	/// TODO: Check if target URLs are is_allowed() :-)
-	///       if not, don't proxify.
-	/// Alternative: Let Proxy redirect straight to the NOT-ALLOWED
-	///              page!
-	/// Problem: Assistant should tell user about that
-	/// solution: Redirection page (selfmade) that will quickly updaet
-	///         the assistant.
-	function proxify_url( $url ) {
-		global $msConfiguration;
-		return  $msConfiguration['proxy-entry-point'].
-			'?action=view&'.
-			$this->proxify_url_add.
-			'&ms-url='.
-			urlencode( $url );
+		$this->conf = MsProxyConfiguration::get_instance();
 	}
-
-	/// Check wether real world url is allowed to be profixied
-	function is_allowed( $url ) {
-		$allow_url = $this->database->get('allow_url');
-		switch($this->database->get('allow_url_type')) {
-			case self::ALLOW_URL_TYPE_WILDCARD:
-				throw MsException('Not Yet implemented', MsException::NOT_YET);
-			case self::ALLOW_URL_TYPE_DOMAIN:
-				#$allow_url = '#^http://([^/]+?)'.preg_quote($allow_url, '#').'/(.+?)#';
-				// now take this regex (no break):
-				$url_scheme = parse_url($url);
-				return strpos($url_scheme['host'], $allow_url) !== false;
-			case self::ALLOW_URL_TYPE_REGEX:
-				return preg_match($allow_url, $url);
-			default:
-				throw new MsException("Bad Allow URL type: $allow_url for database ".$this->database->id,
-					MsException::BAD_CONFIGURATION);
+	/// get the Assistant for current rewrite context by
+	/// executing all triggers
+	/// @returns MsAssistant object
+	function get_assistant() {
+		$triggers = $this->get_triggers();
+		foreach($triggers as $trigger) {
+			if($trigger->match($this->rewrite_url, $this->rewrite_content))
+				return $trigger->get_assistant();
 		}
-	}
-
-	private function get_assistant_script() {
-		// script injection
-		$trigger_id = $this->dispatch_trigger();
-		$trigger = $this->database->get('trigger');
-		$trigger = $trigger[$trigger_id];
-
-		// get assistant text
-		if(isset($trigger['assistant_msg']))
-			$assistant_text = wfMsg('assistant_msg');
-		else if(isset($trigger['assistant_text']))
-			$assistant_text = $trigger['assistant_text'];
-		else
-			$assistant_text = "Trigger $trigger_id matches, but there's no assistant text.";
-
-		// get assistant
-		if(isset($trigger['assistant']))
-			$assistant = wfMsg($trigger['assistant']);
-		else
-			$assistant = 'default assistant';
-
-		$assistant_text = Xml::escapeJsString( $assistant_text );
-		$assistant = Xml::escapeJsString( $assistant );
-		return <<<EOF
-<script type="text/javascript">
-/*<![CDATA[*/
-	// MediaWiki MetaSearch Assistant Wakeup
-	// Code injection by MsProxyDatabaseDriver
-	try {
-		window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
-	} catch(e) {} // for testing...
-/*]]>*/
-</script>
-EOF;
+		// no trigger matched. Return default assistant...
+		$default_array = $this->database->get('default');
+		return new MsAssistant($default_array);
 	}
 
 	/// @returns The ID in the $this->database->get('trigger') array,
@@ -125,6 +183,14 @@ EOF;
 		return false;
 	}
 
+	/// @returns an array of trigger objects based on the configuration.
+	function create_triggers() {
+		$trigger_array = array();
+		foreach($this->database->get('trigger') as $trigger_conf) {
+			$trigger_array[] = new MsProxyAssistantTrigger($trigger_conf);
+		}
+	}
+
 	/// The real rewriting page thingy
 	public $rewrite_url = Null;
 	public $rewrite_content = Null;
@@ -138,10 +204,49 @@ EOF;
 		# 1. Hook before <body> tag
 		$content = preg_replace(
 			'#<\s*body\s#i',
-			$this->get_assistant_script()."\n<body ",
+			//$this->get_assistant_script()
+			'<!--BIOKEMIKA ROCKS-->'."\n<body ",
 			&$content
 		);
 
+		# General Domain rewriting
+		$content = str_ireplace(
+			$this->conf->get_all_domains(),
+			$this->conf->get_all_domains_proxified(),
+			&$content
+		);
+
+		# Domain rewriting using regexp:
+		#$content = preg_replace(
+		#	'#expasy.ch|nlm.nih.gov|ebi.ac.uk|hprd.org|pdb.org|abcam.com|itrust.de|aist.go.jp|atcc.org|atcc.com|wisc.edu|ottobib.com#i',
+		#	'\0.proxy.biokemika.svenk.homeip.net',
+		#	&$content
+		#);
+
+		# Only for perfomance (faster page loading):
+		# URL rewriting in images, flash, java:
+		$content = preg_replace_callback(                                                        /* .+?> */
+			'#(<\s*(?:img|object|embed|applet).+?(?:src|background|codebase|archive)=["\'])(.+?)(["\'])#si',
+			array(&$this, 'rewrite_link_helper'),
+			&$content
+		);
+
+		# Domain *back*writing in CSS and inline CSS:
+		$content = preg_replace_callback(
+			// [\s:{]; to skip false positives like in
+			//    function GetMyUrl(any,javascript,param) {
+			// in a javascript. We only like things like
+			//   background-image:url(...
+			//   @import url("...
+			// important is the trailing ";"
+			// alternative: [^{]*; after the closing \)
+			'#([\s:]url\(["\']?)(.+?)(["\']?\))#si',
+			array(&$this, 'rewrite_link_helper'),
+			&$content
+		);
+
+
+		/*
 		# 2. General URL rewriting
 		$content = preg_replace_callback(
 			# this is all the core magic ;-) :
@@ -163,8 +268,9 @@ EOF;
 			array(&$this, 'rewrite_form_helper'),
 			&$content
 		);
+		*/
 
-		$this->rewrite_execute();
+		//$this->rewrite_execute();
 	}
 
 	/// To be overwritten by extending classes.
@@ -175,18 +281,23 @@ EOF;
 	/// @returns true if rewrite process shall start
 	public function rewrite_before() { return true; }
 
-	/// Will rewrite URLs, evv. proxify them
+	/// Will rewrite URLs to absolute ones and
+	/// deproxify them. Used in images, flash, java, CSS for
+	/// page loading perfomance.
 	private function rewrite_link_helper($m) {
-		// 1=pre, 2=tag name, 3=url, 4=post
-		$tag = strtolower($m[2]);
-		// javascript links or inner page links (hashes)
-		if(preg_match('/^javascript|^#/i', $m[3]))
-			return $m[0];
-		if($tag == 'img' || $tag == 'url') # url => CSS thing
-			return $m[1].resolve_url($this->rewrite_url, $m[3]).$m[4];
-		else
-			return $m[1].$this->proxify_url(
-				resolve_url($this->rewrite_url, $m[3])).$m[4];
+		// 1=pre, 2=url, 3=post
+
+		// false positive: Typical javascript like
+		//   var foo = '<img src="'+other_variable[i]+'">';
+		// skip these things.
+		if($m[2]{0} == '"' || $m[2]{0} == "'")
+			return $m[1].$m[2].$m[3];
+
+		// 1. step: resolve absolute URL (if e.g. relative given)
+		// 2. step: deproxify (only neccessary if absolute was given)
+		return $m[1].$this->conf->deproxify(
+			resolve_url($this->rewrite_url, $m[2])
+		).$m[3];
 	}
 
 	/// Will attach own Input elements to Forms
@@ -221,15 +332,187 @@ EOF;
 		}
 		return $cookie_array;
 	}
+
+}
+
+/**
+ * Can be used like
+ * 
+ * $trigger = new MsProxyAssistantTrigger($your_configuration_from_database);
+ * if( $trigger->matches($your_url, $your_content) )
+ *      $dont_need_to_use_default = $trigger->get_assistant($msg, $text);
+ *
+ **/
+class MsProxyAssistantTrigger {
+	/**
+	 * The rules array can hold parts like (all lowercased!)
+	 * 
+	 * special:
+	 *  - condition: Some thing that combines trigger entries
+	 *               in boolean expressions like AND, OR,
+	 *               Parentheses ( ), etc.
+	 *               If none given, all rules will be OR
+	 *               connected.
+	 *
+	 * rules:
+	 *  - url: on the url
+	 *  - title: on the <title> tag content
+	 *  - content: on the *complete* content
+	 * and for each rule $i
+	 *  - $i_type: one of the class's constants TYPE_REGEX,
+	 *    TYPE_WILDCARD, TYPE_EXACT
+	 *  
+	 *  data:
+	 *  - assistant (allways have to be a message name)
+	 *  - assistant_text, that will be used in favour of
+	 *  - assistant_msg
+	 *
+	 **/
+	private $rules;
+
+	/// types for rules
+	const TYPE_REGEX = 'regex';
+	const TYPE_WILDCARD = 'wildcard';
+	const TYPE_EXACT = 'exact';
+
+	// the name of the key for the default type
+	const DEFAULT_TYPE = 'default_type';
+
+	/// config array (hash) like typical trigger things.
+	function __construct( array $rules ) {
+		$this->rules = array_change_key_case($rules, CASE_LOWER);
+
+		// set defaults:
+		$this->get_rule(self::DEFAULT_TYPE, self::TYPE_WILDCARD);
+	}
+
+	/// does exactly what you think it does.
+	/// @param $default_value Also *SETS* this rule to default value :-)
+	function get_rule( $key, $default_value=Null ) {
+		if(!isset($this->rules[$key])) {
+			if($default_value != Null)
+				$this->rules[$key] = $default_value;
+			return $default_value;
+		} else
+			return $this->rules[$key];
+	}
+
+	/// @returns MsAssistant object created by this trigger
+	function get_assistant() {
+		return new MsAssistant($this->rules);
+	}
+
+	/**
+	 * Returns true if this trigger matches the url/content pair.
+	 * Will iterate throught all rules and evaluate them until
+	 * one matches.
+	 * @returns Boolean
+	 **/
+	function matches( $url, &$content ) {
+		foreach($this->rules as $rule_key => $rule_value) {
+			switch($rule_key) {
+				case 'url':
+					return $this->exec_rule( $rule_key, $url);
+				case 'title':
+					if(!preg_match('#title\s*>(.+?)<\s*/\s*title#is', $content, $m))
+						 // no title tag found
+						continue;
+					return $this->exec_rule( $rule_key, $m[1]);
+				case 'content':
+					return $this->exec_rule( $rule_key, $content);
+				default:
+					// should be nonfatal, continueing
+					throw new MsException("Rule $rule_key ($rule_value) not known!");
+			}
+		}
+		// when we reach here, no rule matched.
+		return false;
+	}
+
+	/// exec a rule on a target.
+	/// @returns TRUE if rule matches, FALSE otherwise
+	function exec_rule( $rule_key, &$target ) {
+		if(!isset($this->rules[$rule_key]))
+			throw new MsException("$this does not have $rule_key rule key.",
+				MsException::BAD_CONFIGURATION);
+
+		$rule_value = $this->get_rule($rule_key);
+		$rule_type_key = $rule_key . '_type';
+		$rule_type = $this->get_rule($rue_type_key,
+			$this->get_rule(self::DEFAULT_TYPE));
+		switch($rule_type) {
+			case self::TYPE_WILDCARD:
+				// urghs... we need a wildcard interpreter
+				return match_wildcard($rule_value, $target);
+			case self::TYPE_REGEX:
+				/// FIXME: Throw an Exception if regexp is not valid!
+				return preg_match($rule_value, $target);
+			case self::TYPE_EXACT:
+				// magic ;-)
+				return ($rule_value == $target);
+			default:
+				throw new MsException("Bad Rule Type: $rule_type (looked up in $rule_type_key) for $rule (value: $rule_value)",
+					MsException::BAD_CONFIGURATION);
+		}
+	}
+}
+
+/// An Assistant object. This holds assistant message, assistant
+/// type, etc. and can create <script> hooks, etc. -- nice things
+/// :-)
+class MsAssistant {
+	public $assistant;        ///<- MediaWiki message for assistant himself
+	//public $assistant_msg;    ///<- Message for the text for the assistant
+	public $assistant_text;   ///<- Or the plain text for the assistant
+
+	/// construct by configuration array
+	function __construct( array $config_array ) {
+		// get assistant text
+		if(isset($config_array['assistant_msg']))
+			$this->assistant_text = wfMsg('assistant_msg');
+		else if(isset($config_array['assistant_text']))
+			$this->assistant_text = $config_array['assistant_text'];
+		else
+			$this->assistant_text = Null;
+
+		// get assistant
+		if(isset($config_array['assistant']))
+			$this->assistant = wfMsg($config_array['assistant']);
+		else
+			$this->assistant = Null;
+	}
+
+	function get_injection() {
+	}
+
+
+	private function get_assistant_script() {
+		// script injection
+		$assistent = $this->get_assistant();
+
+		$trigger_id = $this->run_trigger();
+		$trigger = $this->database->get('trigger');
+		$trigger = $trigger[$trigger_id];
+
+
+		$assistant_text = Xml::escapeJsString( $assistant_text );
+		$assistant = Xml::escapeJsString( $assistant );
+		return <<<EOF
+<script type="text/javascript">
+/*<![CDATA[*/
+	// MediaWiki MetaSearch Assistant Wakeup
+	// Code injection by MsProxyDatabaseDriver
+	try {
+		window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
+	} catch(e) {} // for testing...
+/*]]>*/
+</script>
+EOF;
+	}
 }
 
 
 /********************* helper functions (quite global) *******************/
-
-#var_dump(	
-#	resolve_url("http://www.technikum29.de/foo/", "ca/b/c")
-#);
-#exit(0);
 
 /**
  * From php.net, parseurl():
@@ -317,4 +600,20 @@ function glue_url($parsed) {
     $uri .= isset($parsed['fragment']) ? '#'.$parsed['fragment'] : ''; 
 
     return $uri; 
+}
+
+/**
+ * A simple wildcard matcher. Written on myself, posted to php.net
+ * @param $wildcard_pattern The wildcard pattern
+ * @param $haystack Where to write to
+ * @returns TRUE or FALSE
+ **/
+function match_wildcard( $wildcard_pattern, $haystack ) {
+	$regex = str_replace(
+		array("\*", "\?"), // wildcard chars
+		array('.*','.'),   // regexp chars
+		preg_quote($wildcard_pattern)
+	);
+
+	return preg_match('/^'.$regex.'$/is', $haystack);
 }
