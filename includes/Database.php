@@ -56,15 +56,20 @@ class MsDatabase extends MsMsgConfiguration {
 			wfMsgExists(self::get_conf_msg_name($id));
 	}
 
-	public static function create_driver($name, $database) {
-		// create thingy... bla.
+	/// @param $name Typically a name in $msDatabaseDriver
+	/// @returns true if this is an instance / child class instance of that driver
+	public function is_driver_type($name) {
+		global $msDatabaseDriver;
+		$supposed_driver_conf = self::get_driver_conf($name);
+
+		return ($this->driver instanceof $supposed_driver_conf['class']);
+	}
+
+	/// Returns the appropriate driver configuration array (subarray
+	/// of $msDatabaseDriver and trys to load that driver otherwise.
+	/// Will also check integrity of driver configuration (class field)
+	public static function get_driver_conf($name) {
 		global $msConfiguration, $msDatabaseDriver;
-		// standarize $name:
-		$name = strtolower($name);
-		$classname = Null;
-		// lookup in driver array
-		#var_dump($msDatabaseDriver);
-				
 		if(!isset($msDatabaseDriver[$name])) {
 			// checked whether exists already via is_installed()!
 			if(! include_once $msConfiguration['database_dir'].'/'.strtolower($name).'.php') {
@@ -76,14 +81,28 @@ class MsDatabase extends MsMsgConfiguration {
 				throw new MsException("Missing meta data for metasearch database driver $name!",
 					MsException::BAD_DRIVER);
 			}
-		}
-		// check the driver entry
-		if(! isset($msDatabaseDriver[$name]['class']) ) {
-			throw new MsException("Missing class name in metaseach database driver meta data for $name!",
-				MsException::BAD_DRIVER);
+
+			// check for some entries
+			if(! isset($msDatabaseDriver[$name]['class']) ) {
+				throw new MsException("Missing class name in metaseach database driver meta data for $name!",
+					MsException::BAD_DRIVER);
+			}
 		}
 
-		$classname = $msDatabaseDriver[$name]['class'];
+		return $msDatabaseDriver[$name];
+	}
+
+	public static function create_driver($name, $database) {
+		// create thingy... bla.
+		global $msConfiguration, $msDatabaseDriver;
+		// standarize $name:
+		$name = strtolower($name);
+		$classname = Null;
+
+		// lookup in driver array
+		$driver_conf = self::get_driver_conf($name);
+
+		$classname = $driver_conf['class'];
 		#$classname = "MsDriver_${name}";
 		$driver = new $classname($database);
 		return $driver;

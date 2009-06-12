@@ -198,6 +198,16 @@ class MsCategoryStack {
 	function get_all() {
 		return $this->array;
 	}
+
+	/// @returns A simple string representation of this cat stack, for debugging
+	function __toString() {
+		$r = 'MsCategoryStack: (bottom) ';
+		foreach($this->array as $cat) {
+			$r .= "$cat "; # string context!
+		}
+		$r .= '(top)';
+		return $r;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -338,5 +348,10 @@ HTML
 
 	function get_box($area='presearch') {
 		return wfMsg('ms-'.$this->id."-${area}-box");
+	}
+
+	/// A simple string representation (showing the id), for debugging
+	function __toString() {
+		return '[MsCategory:'.$this->id.']';
 	}
 }

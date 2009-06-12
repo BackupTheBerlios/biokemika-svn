@@ -38,6 +38,18 @@ WIKI
 	}
 
 	function list_databases() {
+
+		// Problem:
+		//   No more simple method to get all installed databases, since
+		//   we had to search for articles in the form MediaWiki:ms-*-database
+		//   and return that.
+		//   
+		// Other issue:
+		//   DRIVERS are much more important and simplier to get
+		//   (include all /databases/* stuff)
+
+		return;
+
 		$r = wfMsg('ms-list-databases-pre');
 		# At this point: Get all dbs from MsDatabaseFactory and
 		# get installation details directly from Database objects!
