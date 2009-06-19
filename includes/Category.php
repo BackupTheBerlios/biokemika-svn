@@ -179,6 +179,30 @@ class MsCategoryStack {
 		// stack is clean.
 	}
 
+	/// Push a category on the top. Yes, that changes the category.
+	/// Will clean stack afterwards.
+	/// @param $cat a MsCategory object or a string
+	function push( $cat ) {
+		if(is_string($cat))
+			$cat = new MsCategory($cat);
+		if(! ($cat instanceof MsCategory) )
+			throw new MsException("MsCategoryStack::push: Error: $cat is no category");
+
+		$this->array[] = $cat;
+		$this->clean();
+	}
+
+	/// Will remove the topmost category from the stack. This will
+	/// pop the stack until it reaches the root cat, then always
+	/// return the root cat.
+	/// @returns The popped cat.
+	function pop() {
+		if(count($this->array) > 1)
+			return array_pop($this->array);
+		else
+			return $this->array[0];
+	}
+
 	/// @returns the size of the stack
 	function count() {
 		return count($this->array);

@@ -4,10 +4,8 @@
  * class MsChooserPage
  * 
  *   1. Choose Category
- *   2. Evventually choose database, if category contains
- *        db-choose: yes
- *      or anything like that (perhaps db scanning and checking
- *      if they behave good...)
+ *   2. Choose Database, if category databases don't match
+ *      MsDatabase::are_query_databases() criteria
  *
  * (c) Copyright 2009 Sven Koeppel
  *
@@ -31,74 +29,93 @@
 error_reporting(E_ALL);
 
 class MsChooserPage extends MsPage {
-	public $search_mask;
-
 	// input data
-	public $input_category;
+	public $cat_stack;
 	
-
-	/**
-	 * Read in and validate user input. This method will take
-	 * the user input from the MediaWiki globale $wgRequest.
-	 * @exception MWException when some user input was bad.
-	 * @return Nothing interesting (if no exception)
-	 **/
-	function validate_user_data() {
-		global $wgRequest, $msCategories;
-
-		$this->input_category = strtolower(array_pop($wgRequest->getArray('ms_cat')));
-		if(empty($this->input_category) || !MsCategoryFactory::exists($this->input_category)) {
-			//if(!isset($msCategories[$this->controller->input_category])) {
-			throw new MWException('<b>'.htmlspecialchars($this->input_category).'</b>: Invalid Category');
-		}
-
-		$cat = new MsCategory($this->input_category);
-		$this->controller->input_databases = $cat->get_databases();
-
-		return true;
-	}
 
 	function execute( $par ) {
 		global $wgRequest, $wgOut, $wgUser;
-		//$this->search_mask = new MsSearchMask();
-		//$this->search_mask->fill_from_request();
 
-		$template = new MsChooserTemplate();
-		$stack = new MsCategoryStack( $wgRequest->getArray('ms_cat') );
+		try {
+			$this->cat_stack = new MsCategoryStack( $wgRequest->getArray('ms-cat') );
+		} catch(MsException $e) {
+			$wgOut->add("Stack: {$this->cat_stack}.<br>Your params are bad: $e");
+		}
 
-		$template->set('action' , $this->getTitle()->escapeLocalURL() );
-		$template->set('display_input_box', true);
-		$template->set('assistant_box_msg', 'blasearch assistant msg');
-		$template->set('assistant_msg', 'assistant bla msg');
-		$template->setRef('stack', $stack);
-
-		#var_dump($stack); exit(0);
-
-		if($stack->get_top()->has_sub_categories()) {
-			// display catchooser
-			$wgOut->addTemplate($template);
+		if($this->cat_stack->get_top()->has_sub_categories()) {
+			// display category chooser
+			$this->display_cat_chooser();
 		} else {
-			// "end" category chosen.
+			// no more categories to choose of.
 			// Check what we've got for databases:
-			$dbs = $stack->get_top()->get_databases(MsCategory::AS_OBJECTS);
+			$dbs = $this->cat_stack->get_top()->get_databases(MsCategory::AS_OBJECTS);
 
 			if(empty($dbs)) {
-				throw MsException('Top cat has no databases attached',
+				throw new MsException("Top cat of {$this->cat_stack} has no databases attached",
 					MsException::BAD_CONFIGURATION);
 			}
-			$subtitle = 'proxy'; # default: 'query'
-			#if(is_a($dbs[0], 'MsQueryDatabaseDriver')) {
-			#	$subtitle = 'query';
-			#} else if(is_a($dbs[0]
 
-			$wgOut->redirect(
-				$this->special_page->get_sub_title('proxy')->getLocalURL(
-					$stack->build_query()
-				)
-			);
-			#exit(0);
-		}
-	} // execute
+			if(count($dbs) > 1) {
+				// the cat has more than one database
+				if( MsDatabase::are_query_databases($dbs) ) {
+					// but they are all Query Databases, so
+					// let MsQueryPage do it's job
+					$this->redirect('query');
+				} else {
+					// Since we cannot merge different databases on
+					// one page, display a database chooser.
+					$this->display_db_chooser();
+				}
+			} else {
+				// Only one database in this cat.
+				// Relaxed situation :-)
+				$db = $dbs[0];
+
+				// Quick & Dirty, to be improved:
+				$subtitle = $db->is_driver_type('proxydriver') ? 'proxy' : 'query';
+				$this->redirect( $subtitle );
+			}
+		} // if ...->has_sub_categories()
+	} // function execute
+
+	function redirect( $subpage ) {
+		global $wgOut;
+
+		$wgOut->redirect(
+			$this->special_page->get_sub_title($subpage)->getLocalUrl(
+				$this->cat_stack->build_query('ms-cat')
+			)
+		);
+	}
+
+	/// only to be called from execute()
+	private function display_cat_chooser() {
+		global $wgOut;
+
+		$template = new MsChooserTemplate();
+
+		$template->setRef('view', $this); // for callbacks...
+		$template->setRef('title', $this->getTitle() );
+		$template->setRef('stack', $this->cat_stack);
+
+		// assistant texts
+		$template->set('assistant_text_msg', 'ms-'.$this->cat_stack->get_top()->id.'-presearch-box' );
+		$template->set('assistant_msg', $this->cat_stack->get_top()->get('assistant', 'ms-assistant-good') );
+
+		$wgOut->addTemplate($template);
+	}
+
+	private function display_db_chooser() {
+		global $wgOut;
+
+		// ...
+		$wgOut->addHTML('Display some kind of DB chooser.');
+	}
+
+	function link_title_for(MsCategory $cat) {
+		// should be implemented with some wfMsg...
+		return "Select $cat...";
+	}
 
 	function print_end_page() {
 		global $wgUser, $wgOut;

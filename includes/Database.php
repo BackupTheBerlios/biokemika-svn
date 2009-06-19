@@ -56,6 +56,20 @@ class MsDatabase extends MsMsgConfiguration {
 			wfMsgExists(self::get_conf_msg_name($id));
 	}
 
+	/// Checks whether all databases in $database array are 'querydriver'
+	/// databases. Such databases can be run together, 'proxydriver'
+	/// databases cannot do that.
+	/// @param $databases Database array
+	/// @returns true if can run together (all querydriver), false if not
+	public static function are_query_databases(array $databases) {
+		global $msDatabaseDriver;
+		foreach($databases as $db) {
+			if(! $db->is_driver_type('querydriver'))
+				return false;
+		}
+		return true;
+	}
+
 	/// @param $name Typically a name in $msDatabaseDriver
 	/// @returns true if this is an instance / child class instance of that driver
 	public function is_driver_type($name) {

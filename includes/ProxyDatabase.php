@@ -35,8 +35,8 @@ class MsProxyConfiguration {
 		'abcam.com' => self::DEFAULT_DB,
 		'itrust.de' => self::DEFAULT_DB,
 		'aist.go.jp' => self::DEFAULT_DB,
-		'atcc.org' => self::DEFAULT_DB,
-		'atcc.com' => self::DEFAULT_DB,
+		'atcc.org' => 'atcc',
+		'atcc.com' => 'atcc',
 		'wisc.edu' => self::DEFAULT_DB,
 		'ottobib.com' => self::DEFAULT_DB,
 
@@ -159,7 +159,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 	/// executing all triggers
 	/// @returns MsAssistant object
 	function get_assistant() {
-		$triggers = $this->get_triggers();
+		$triggers = $this->create_triggers();
 		foreach($triggers as $trigger) {
 			if($trigger->match($this->rewrite_url, $this->rewrite_content))
 				return $trigger->get_assistant();
@@ -189,6 +189,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 		foreach($this->database->get('trigger') as $trigger_conf) {
 			$trigger_array[] = new MsProxyAssistantTrigger($trigger_conf);
 		}
+		return $trigger_array;
 	}
 
 	/// The real rewriting page thingy
@@ -201,13 +202,9 @@ class MsProxyDatabaseDriver extends MsDriver {
 		if(!$this->rewrite_before())
 			return;
 
-		# 1. Hook before <body> tag
-		$content = preg_replace(
-			'#<\s*body\s#i',
-			//$this->get_assistant_script()
-			'<!--BIOKEMIKA ROCKS-->'."\n<body ",
-			&$content
-		);
+		$assistant = $this->get_assistant();
+
+
 
 		# General Domain rewriting
 		$content = str_ireplace(
@@ -242,6 +239,13 @@ class MsProxyDatabaseDriver extends MsDriver {
 			// alternative: [^{]*; after the closing \)
 			'#([\s:]url\(["\']?)(.+?)(["\']?\))#si',
 			array(&$this, 'rewrite_link_helper'),
+			&$content
+		);
+
+		# 1. Hook before <body> tag
+		$content = preg_replace(
+			'#<\s*body\s#i',
+			$assistant->get_script()."\n<body ",
 			&$content
 		);
 
@@ -408,7 +412,7 @@ class MsProxyAssistantTrigger {
 	 * one matches.
 	 * @returns Boolean
 	 **/
-	function matches( $url, &$content ) {
+	function match( $url, &$content ) {
 		foreach($this->rules as $rule_key => $rule_value) {
 			switch($rule_key) {
 				case 'url':
@@ -422,7 +426,8 @@ class MsProxyAssistantTrigger {
 					return $this->exec_rule( $rule_key, $content);
 				default:
 					// should be nonfatal, continueing
-					throw new MsException("Rule $rule_key ($rule_value) not known!");
+					throw new MsException("Rule '$rule_key' (value '$rule_value') not known! Rule should be 'url', 'title' or 'content'",
+						MsException::BAD_CONFIGURATION);
 			}
 		}
 		// when we reach here, no rule matched.
@@ -438,7 +443,7 @@ class MsProxyAssistantTrigger {
 
 		$rule_value = $this->get_rule($rule_key);
 		$rule_type_key = $rule_key . '_type';
-		$rule_type = $this->get_rule($rue_type_key,
+		$rule_type = $this->get_rule($rule_type_key,
 			$this->get_rule(self::DEFAULT_TYPE));
 		switch($rule_type) {
 			case self::TYPE_WILDCARD:
@@ -482,31 +487,22 @@ class MsAssistant {
 			$this->assistant = Null;
 	}
 
-	function get_injection() {
-	}
-
-
-	private function get_assistant_script() {
+	public function get_script() {
 		// script injection
-		$assistent = $this->get_assistant();
-
-		$trigger_id = $this->run_trigger();
-		$trigger = $this->database->get('trigger');
-		$trigger = $trigger[$trigger_id];
-
-
-		$assistant_text = Xml::escapeJsString( $assistant_text );
-		$assistant = Xml::escapeJsString( $assistant );
-		return <<<EOF
-<script type="text/javascript">
-/*<![CDATA[*/
+		#$assistant_text = Xml::escapeJsString( $this->assistant_text );
+		#$assistant = Xml::escapeJsString( $this->assistant );
+		$assistant_text = urlencode( $this->assistant_text );
+		$assistant = urlencode( $this->assistant );
+/*<script type="text/javascript">
 	// MediaWiki MetaSearch Assistant Wakeup
 	// Code injection by MsProxyDatabaseDriver
-	try {
-		window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
-	} catch(e) {} // for testing...
-/*]]>*/
+	//try {
+	//	window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
+	//} catch(e) {} // for testing...
 </script>
+*/
+		return <<<EOF
+<iframe style="display: none;" src="http://biokemika.svenk.homeip.net/extensions/metasearch/test.php?assistant=${assistant}&asssistant_text=${assistant_text}"></iframe>
 EOF;
 	}
 }
@@ -612,7 +608,7 @@ function match_wildcard( $wildcard_pattern, $haystack ) {
 	$regex = str_replace(
 		array("\*", "\?"), // wildcard chars
 		array('.*','.'),   // regexp chars
-		preg_quote($wildcard_pattern)
+		preg_quote($wildcard_pattern, '/')
 	);
 
 	return preg_match('/^'.$regex.'$/is', $haystack);

@@ -4,15 +4,15 @@
  *
  * This is the "main body" function that is called by
  * Mediawiki when the Metasearch special page is loaded.
- * ms_SpecialPage is the controller class that will master
- * the call.
  * 
- * Further implementations HERE:
+ * This file contains many central definitions of the
+ * MetaSearch project, like
  * 
- * GLOBAL FUNCTIONS
+ *  - starting class MsSpecialPage, common MsPage class
+ *  - important global functions like wfMsgExists
+ *  - important classes like MsMsgConfiguration, MsException
+ *  - $msDatabaseDriver and it's basic setup
  * 
- * MsMsgConfigurator
- * MsException
  **/
 error_reporting(E_ALL);
 
@@ -69,7 +69,8 @@ class MsSpecialPage extends SpecialPage {
 			'type' => 'text/css'
 		) );
 
-		// code borrowed from SecureSearch extension
+		// subpage handling
+		// (code borrowed from SecureSearch extension)
 		$paramString = strval( $par );
 		if ( $paramString === '' ) {
 			//$paramString = 'choose'; # default page!
@@ -85,7 +86,14 @@ class MsSpecialPage extends SpecialPage {
 			return;
 		}
 
+		// pre and post notice handling
+		$pre = wfMsgNonEmpty('ms-sitenotice');
+		if($pre) $wgOut->addWiki($pre);
+
 		$page->execute( $par );
+
+		$post = wfMsgNonEmpty('ms-sitenotice-post');
+		if($post) $wgOut->addWiki($post);
 	} // execute
 
 	function get_sub_page($name) {
@@ -214,6 +222,14 @@ function var_dump_ret($mixed = null) {
 /// @returns Boolean: True/False
 function wfMsgExists($name) {
 	return wfMsg($name) != "&lt;$name&gt;";
+}
+
+/// empty message: Message content is only "-", like in MediaWiki:sitenotice
+/// @returns string if message is not empty
+function wfMsgNonEmpty($name) {
+	$msg = wfMsg($name);
+	if("&lt;$name&gt;" == $msg || '-' == $msg) return false;
+	else return $msg;
 }
 
 /**

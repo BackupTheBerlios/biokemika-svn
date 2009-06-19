@@ -3,7 +3,6 @@
 error_reporting(E_ALL);
 
 class MsQuickTemplate extends QuickTemplate {
-
 	/// This will *reference* each value from $array to the
 	/// template data array.
 	function set_from_array( $array ) {
@@ -31,44 +30,28 @@ class MsQuickTemplate extends QuickTemplate {
  **/
 class MsChooserTemplate extends MsQuickTemplate {
 
+/* <form method="get" action="<?php $this->text('action'); ?>" name="ms"> */
+
 	function execute() {
 		?>
-<div class="ms-formbox ms-pre">
-<form method="get" action="<?php $this->text('action'); ?>" name="ms">
-<?php  if($this->bool('display_input_box')) {  ?>
-	<div class="ms-right">
-		<div class="ms-assistant-box">
-<?php  } else { ?>
-		<div class="ms-assistant-box">
-<?php  }
+<div class="ms-page">
+	<div class="ms-assistant-text">
+		<?php $this->msgWiki( $this->get('assistant_text_msg') ); ?>
+	</div>
+	<div class="ms-assistant">
+		<?php $this->msgWiki( $this->get('assistant_msg') ); ?>
+	</div>
 
-	$this->msgWiki( $this->get('assistant_box_msg') );
-?>
-		</div><!-- assistant box -->
-<?php  if(! $this->bool('display_input_box')) { ?>
-	<div class="ms-right">
-<?php  } ?>
-		<div class="mc-bc">
-<?php
-	$this->msgWiki( $this->get('assistant_msg') );
-?>
-		</div><!-- mr bc -->
-	</div><!-- ms-right -->
-
-	<div class="ms-left">
-	<?php
-		if($this->bool('display_input_box')) {
-			echo '<div class="ms-inputtext">';
-			// $wgOut->addWikiText( wfMsg( $this->get_assistant_msg() ) );
-			echo '</div>';
-		}
-	?>
-	</div><!-- ms-left -->
-
-	<div class="ms-class-selector">
+	<div class="ms-catchooser">
 	<?php
 		// $this->data['stack'] = MsCategoryStack object
 
+		// Cats not to display in the list but only
+		// at the end of page (debugging, maintenance, etc. cats)
+		$maintenance_cats = array();
+
+		// make an own temporary category stack for the current location
+		$current_stack = new MsCategoryStack();
 		// go throught the stack and get data from each category
 		for($x = 0; $x < $this->data['stack']->count(); $x++) {
 			$sub_cats = $this->data['stack']->get($x)->get_sub_categories(true);
@@ -76,33 +59,55 @@ class MsChooserTemplate extends MsQuickTemplate {
 				// Endkategorie erreicht!
 				break;
 
-			if($x!=0)
-				// very simple arrow
-				echo '<img src="http://upload.wikimedia.org/wikipedia/commons/0/0e/Forward.png" class="arrow">';
+			// update loop stack
+			$current_stack->push( $this->data['stack']->get($x) );
 
-			echo '<select class="cat-'.$x.'" name="ms_cat[]" size="6" onchange="try{document.ms.ms_search.value=\'\';}catch(e){}; document.ms.submit();">';
-			foreach($sub_cats as $sub_cat) {
-				echo '<option value="'.$sub_cat->id.'" ';
-
-				// Anwaehlen aktueller Datenbanken
-				if($x+1 < $this->data['stack']->count() && $this->data['stack']->get($x+1)->id == $sub_cat->id)
-					echo 'selected="selected"';
-
-				// ausgrauen noch nicht gemachter Datenbanken
-				if($sub_cat->get('input') == 'notyet')
-					echo 'style="color:#aaa;"';
-				echo '>';
-				echo $sub_cat->get('name');
-				#$this->get_category_name($sub_cat);
-				echo '</option>';
+			echo '<div class="sub level'.$x.'">';
+			if($x < $this->data['stack']->count()-1) {
+				echo 'Hier hast du schon ausgewählt:';
+			} else {
+				echo 'Bitte wähle hier aus:';
 			}
-			echo '</select>';
+			echo '<ul>';
+			foreach($sub_cats as $cat) {
+				if($cat->has_set('maintenance')) {
+					$maintenance_cats[] = $cat;
+					continue;
+				}
+				
+				// update stack
+				$current_stack->push( $cat );
+
+				echo '<li>';
+				$a = array(); // the <a> Xml tag
+				$a['href'] = $this->data['title']->getLocalURL(
+					$current_stack->build_query('ms-cat')
+				);
+				$a['title'] = $this->data['view']->link_title_for($cat);
+				$a['class'] = '';
+
+				// Highlight the selected database
+				if($x+1 < $this->data['stack']->count() &&
+				     $this->data['stack']->get($x+1)->id == $cat->id)
+					$a['class'] .= ' selected';
+
+				// grey out databases not done yet
+				if($cat->has_set('notyet'));
+					$a['class'] .= ' notyet';
+
+				// print out <a ...>...</a> tag:
+				echo Xml::element('a', $a, $cat->get('name'));
+				
+				echo '</li>';
+				$current_stack->pop();
+			}
+			echo '</ul>';
+			echo '</div>';
 		}
 	?>
-	</div><!--ms-class-selector -->
+	</div><!--ms-catchooser -->
 
-	</form>
-</div><!--formbox-->
+</div><!--ms-page-->
 <?php
 	} // function execute()
 
