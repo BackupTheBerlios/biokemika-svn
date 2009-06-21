@@ -15,7 +15,7 @@ error_reporting(E_ALL);
  * dafuer ne Default Configuration Message, die dem 
  * Driver uebergeben wird.
  **/
-class MsProxyConfiguration {
+class MsProxyConfiguration extends MsMsgConfiguration {
 	// the default database, must be installed like
 	// MediaWiki:ms-defaultproxy-database.
 	// You don't need such a thing unless you want
@@ -24,10 +24,11 @@ class MsProxyConfiguration {
 	const DEFAULT_DB = 'pubmed';
 
 	/// including trailing dot
-	public $proxy_domain = '.proxy.biokemika.svenk.homeip.net';
+	public $proxy_domain;// = '.proxy.biokemika.svenk.homeip.net';
 	/// *The* URL path to your proxy.php thingy
-	public $proxy_url = 'http://biokemika.svenk.homeip.net/extensions/metasearch/assistant.php';
+	public $proxy_assistant_url;// = 'http://biokemika.svenk.homeip.net/extensions/metasearch/assistant.php';
 	/// The config array
+	/*
 	private $domains = array(
 		'nih.gov' => 'pubmed',
 		'expasy.ch' => self::DEFAULT_DB,
@@ -44,11 +45,15 @@ class MsProxyConfiguration {
 
 		'svenk.homeip.net' => self::DEFAULT_DB
 	);
+	*/
 
 	/// singleton pattern
 	private function __construct() {
-		// noch nicht parsen (keine Lust)
-		// sollte membervariablen setzen und so.
+		global $msConfiguration;
+
+		$this->read_configuration('ms-databases');
+		$this->proxy_domain = $msConfiguration['proxy_domain'];
+		$this->proxy_assistant_url = $msConfiguration['proxy_assistant_url'];
 	}
 
 	static private $singleton = Null;
@@ -69,9 +74,9 @@ class MsProxyConfiguration {
 		$reg_domain = $this->get_registered_domain($domain);
 		if(!$reg_domain)
 			throw new MsException("$domain is not allowed to be proxified!");
-		if(empty($this->domains[$reg_domain]))
+		if(! $this->has_set($reg_domain) )
 			throw new MsException("No database given for $domain");
-		return new MsDatabase($this->domains[$reg_domain]);
+		return new MsDatabase( $this->get($reg_domain) );
 	}
 
 	// checks if url is allowed to be proxified
@@ -93,7 +98,7 @@ class MsProxyConfiguration {
 	/// @returns A registered domain (=key in $this->domains) or Null, if not found
 	function get_registered_domain($any_domain) {
 		$any_domain = strtolower($any_domain);
-		foreach($this->domains as $reg_domain => $v) {
+		foreach($this->conf as $reg_domain => $v) {
 			if(strpos($any_domain, $reg_domain) !== false)
 				return $reg_domain;
 		}
@@ -102,13 +107,13 @@ class MsProxyConfiguration {
 
 	/// @return all registered domains
 	function get_all_domains() {
-		return array_keys($this->domains);
+		return array_keys($this->conf);
 	}
 
 	/// @return all registered domains, proxified
 	function get_all_domains_proxified() {
 		$r = array();
-		foreach(array_keys($this->domains) as $domain) {
+		foreach(array_keys($this->conf) as $domain) {
 			$r[] = $domain . $this->proxy_domain;
 		}
 		return $r;
@@ -433,8 +438,9 @@ class MsProxyAssistantTrigger {
 					return $this->exec_rule( $rule_key, $content);
 				default:
 					// should be nonfatal, continueing
-					throw new MsException("Rule '$rule_key' (value '$rule_value') not known! Rule should be 'url', 'title' or 'content'",
-						MsException::BAD_CONFIGURATION);
+					//throw new MsException("Rule '$rule_key' (value '$rule_value') not known! Rule should be 'url', 'title' or 'content'",
+					//	MsException::BAD_CONFIGURATION);
+					// TODO: Generate warning, fetchable
 			}
 		}
 		// when we reach here, no rule matched.
@@ -514,7 +520,7 @@ class MsAssistant {
 		$conf = MsProxyConfiguration::get_instance();
 
 		$html = '<!-- BioKemika Assistant Updater Hook: -->';
-		$html .= '<iframe style="display: none;" src="'.$conf->proxy_url.
+		$html .= '<iframe style="display: none;" src="'.$conf->proxy_assistant_url.
 			'?'. http_build_query($this->conf).
 			'"></iframe>';
 		$html .= '<!-- End of Hook -->';

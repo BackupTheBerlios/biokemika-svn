@@ -54,12 +54,7 @@ $wgExtensionCredits['specialpage'][] = array(
 # Configuration
 $dir = dirname(__FILE__);
 
-$msConfiguration = array(
-	'proxy-entry-point' => '/extensions/metasearch/proxy.php',
-	'default-record-message' => 'Ms-record',
-	'root-category-name'  => 'root',
-	'database_dir' => $dir.'/databases', 
-);
+global $msConfiguration;
 
 // this has to be filled by the database driver files. It should
 // be used like $wgExtensionCredits above.

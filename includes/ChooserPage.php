@@ -98,10 +98,6 @@ class MsChooserPage extends MsPage {
 		$template->setRef('title', $this->getTitle() );
 		$template->setRef('stack', $this->cat_stack);
 
-		// assistant texts
-		$template->set('assistant_text_msg', 'ms-'.$this->cat_stack->get_top()->id.'-presearch-box' );
-		$template->set('assistant_msg', $this->cat_stack->get_top()->get('assistant', 'ms-assistant') );
-
 		$wgOut->addTemplate($template);
 	}
 

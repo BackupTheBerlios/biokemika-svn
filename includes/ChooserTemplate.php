@@ -18,6 +18,17 @@ class MsQuickTemplate extends QuickTemplate {
 	function get( $str ) {
 		return $this->data[$str];
 	}
+
+	/// like msgWiki, just for strings: Render string as wiki.
+	/// An ugly hack ;-)
+	/// Advantage to msgWiki: $this->wiki(wfMsg()) will do what you
+	/// think (msgWiki doesn't use wfMsg()).
+	function wiki( $str ) {
+		global $wgParser, $wgOut, $wgTitle;
+		$parserOutput = $wgParser->parse( $str, $wgTitle,#$wgOut->getTitle(),
+			$wgOut->parserOptions(), true );
+		echo $parserOutput->getText();
+	}
 }
 
 /**
@@ -33,13 +44,29 @@ class MsChooserTemplate extends MsQuickTemplate {
 /* <form method="get" action="<?php $this->text('action'); ?>" name="ms"> */
 
 	function execute() {
+		extract($this->data); // PHP magic, mainly for shorthand $stack.
 		?>
-<div class="ms-page">
+<div class="ms-page <?php echo 'ms-page-'.str_replace(' ', '_', $this->data['stack']->get_top()->id); ?>">
 	<div class="ms-assistant-text">
-		<?php $this->msgWiki( $this->get('assistant_text_msg') ); ?>
+		<?php
+			$assistant_text_msg = $stack->get_top()->get(
+				'assistant_text',
+				'ms-'.$stack->get_top()->id.'-presearch-box'
+			);
+
+			$assistant_msg = $stack->get_top()->get(
+				'assistant',
+				'ms-assistant'
+			);
+
+			$assistant_text = wfMsg( $assistant_text_msg );
+			$assistant = wfMsg($assistant_msg);
+
+			$this->wiki( $assistant_text );
+		?>
 	</div>
 	<div class="ms-assistant">
-		<?php $this->msgWiki( $this->get('assistant_msg') ); ?>
+		<?php $this->wiki( $assistant ); ?>
 	</div>
 
 	<div class="ms-catchooser">

@@ -16,7 +16,9 @@
  **/
 error_reporting(E_ALL);
 
+// Load Settings file
 $ms_dir = dirname(__FILE__) . '/';
+require $ms_dir.'MetaSearch.settings.php';
 
 ////// DatenbankTreiber anmelden
 
