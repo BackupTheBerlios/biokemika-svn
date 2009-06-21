@@ -62,11 +62,14 @@ class MsChooserTemplate extends MsQuickTemplate {
 			// update loop stack
 			$current_stack->push( $this->data['stack']->get($x) );
 
-			echo '<div class="sub level'.$x.'">';
-			if($x < $this->data['stack']->count()-1) {
-				echo 'Hier hast du schon ausgewählt:';
+			$is_last = $x < $this->data['stack']->count()-1;
+
+			echo '<div class="sub level'.$x.' '.($is_last?'level_last':'').'">';
+			if($is_last) {
+				// for a bit barrierefreiheit...
+				echo '<div class="help">Hier hast du schon ausgewaehlt:</div>';
 			} else {
-				echo 'Bitte wähle hier aus:';
+				echo '<div class="help">Bitte waehle hier aus:</div>';
 			}
 			echo '<ul>';
 			foreach($sub_cats as $cat) {
@@ -96,7 +99,9 @@ class MsChooserTemplate extends MsQuickTemplate {
 					$a['class'] .= ' notyet';
 
 				// print out <a ...>...</a> tag:
-				echo Xml::element('a', $a, $cat->get('name'));
+				echo Xml::tags('a', $a, 
+					$this->link_design_content($cat->get('name'))
+				);
 				
 				echo '</li>';
 				$current_stack->pop();
@@ -110,6 +115,11 @@ class MsChooserTemplate extends MsQuickTemplate {
 </div><!--ms-page-->
 <?php
 	} // function execute()
+
+	function link_design_content($c) {
+		// some workarounds for CSS design in the link
+		return '<span class="pre"></span><span class="post"></span><span class="content">'.$c.'</span>';
+	}
 
 } // class
 

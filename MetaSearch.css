@@ -1,32 +1,82 @@
 /* Rapid CSS Development for search mask */
 
+/************* CAT CHOOSER *****************/
+
 .ms-catchooser {
 	background: #fefefe;
+}
+
+.ms-catchooser .sub {
+	width: 150px;
+	float: left;
+	background: #eee;
+	padding: 10px;
+	margin: 10px;
 }
 
 .ms-catchooser ul, .ms-catchooser li {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+	display: inline;
 }
 
 .ms-catchooser a {
 	display: block;
-	width: 150px;
-
-	padding: 5px;
 	margin: 5px;
-
-	border: 2px solid red;
+	font-size: 15px;
 	text-decoration: none;
+}
+
+.ms-catchooser a .pre {
+	/* helper for <a> design */
+	float: left;
+	background: url(/extensions/metasearch/images/left-bg.a.png) no-repeat;
+	height: 40px;
+	width: 10px;
+}
+
+.ms-catchooser a .content {
+	display: block;
+
+	background: url(/extensions/metasearch/images/stretch-bg.a.png) repeat-x;
+	background-position: top right;
+
+	height: 40px;
+	margin-right: 10px; /* for helper */
+	margin-left: 10px;
+}
+
+.ms-catchooser a .post {
+	/* helper for <a> design */
+	float: right;
+	background: url(/extensions/metasearch/images/right-bg.a.png) no-repeat;
+	height: 40px;
+	width: 10px;
+}
+
+.ms-catchooser a:link, .ms-catchooser a:visited {
+	color: white;
+	background-color: green;
+}
+
+.ms-catchooser a:hover {
+	background-color: red;
+}
+
+.ms-catchooser a:active, .ms-catchooser a.selected {
+	background-color: black;
 	font-weight: bold;
-	font-size: 130%;
 }
 
 
+/************** PROXY DATABASE DRIVER *******************/
 
-
-
+.ms-page iframe {
+	width: 100%;
+	height: 300px;
+	border: 3px solid black;
+}
 
 
 

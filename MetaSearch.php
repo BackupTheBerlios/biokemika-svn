@@ -110,5 +110,5 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 	'MsProxyTemplate' => "$dir/includes/ProxyPage.php",
 	'MsProxyPage' => "$dir/includes/ProxyPage.php",
 	'MsProxyConfiguration' => "$dir/includes/ProxyDatabase.php",
-
+	'MsAssistant' => "$dir/includes/ProxyDatabase.php",
 );

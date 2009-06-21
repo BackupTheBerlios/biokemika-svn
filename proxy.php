@@ -126,8 +126,10 @@ $contents = $response->getBody();
 	//array_walk($header, 'header');
 	#var_dump($http_response_header, $header); exit();
 
+$is_html = ( stripos($response->getHeader('Content-Type'), 'html') !== false );
+
 // rewrite the page...
-$db->driver->rewrite_page($url, $contents);
+$db->driver->rewrite_page($url, $contents, $is_html);
 
 // and print it out.
 echo $contents;

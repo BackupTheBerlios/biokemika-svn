@@ -25,6 +25,8 @@ class MsProxyConfiguration {
 
 	/// including trailing dot
 	public $proxy_domain = '.proxy.biokemika.svenk.homeip.net';
+	/// *The* URL path to your proxy.php thingy
+	public $proxy_url = 'http://biokemika.svenk.homeip.net/extensions/metasearch/assistant.php';
 	/// The config array
 	private $domains = array(
 		'nih.gov' => 'pubmed',
@@ -169,20 +171,6 @@ class MsProxyDatabaseDriver extends MsDriver {
 		return new MsAssistant($default_array);
 	}
 
-	/// @returns The ID in the $this->database->get('trigger') array,
-	///          if nothing found, false.
-	private function dispatch_trigger() {
-		foreach($this->database->get('trigger') as $_id => $trigger) {
-			extract($trigger); # a bit of PHP magic ;-)
-			if(isset($url)) {
-				if(preg_match($url, $this->rewrite_url))
-					return $_id;
-			}
-		}
-		// nothing found!
-		return false;
-	}
-
 	/// @returns an array of trigger objects based on the configuration.
 	function create_triggers() {
 		$trigger_array = array();
@@ -195,15 +183,14 @@ class MsProxyDatabaseDriver extends MsDriver {
 	/// The real rewriting page thingy
 	public $rewrite_url = Null;
 	public $rewrite_content = Null;
-	function rewrite_page( $url, &$content ) {
+	public $rewrite_is_html = true;
+	function rewrite_page( $url, &$content, $is_html ) {
 		$this->rewrite_url = $url; # for global access
 		$this->rewrite_content =& $content; # for global rw(!) access
+		$this->rewrite_is_html = $is_html;
 
 		if(!$this->rewrite_before())
 			return;
-
-		$assistant = $this->get_assistant();
-
 
 
 		# General Domain rewriting
@@ -237,17 +224,27 @@ class MsProxyDatabaseDriver extends MsDriver {
 			//   @import url("...
 			// important is the trailing ";"
 			// alternative: [^{]*; after the closing \)
-			'#([\s:]url\(["\']?)(.+?)(["\']?\))#si',
+			'#([\s:]url\(\s*["\']?)(.+?)(\s*["\']?\))#si',
 			array(&$this, 'rewrite_link_helper'),
 			&$content
 		);
 
 		# 1. Hook before <body> tag
-		$content = preg_replace(
+		/*$content = preg_replace(
 			'#<\s*body\s#i',
 			$assistant->get_script()."\n<body ",
 			&$content
-		);
+		);*/
+
+		# Hook after <body> tag
+		if($is_html) {
+			// rewrite only HTML pages (not scripts!)
+			$content = preg_replace_callback(
+				'#<s*body.*?>#i',
+				array(&$this, 'rewrite_assistant_hook'),
+				&$content
+			);
+		}
 
 
 		/*
@@ -316,6 +313,16 @@ class MsProxyDatabaseDriver extends MsDriver {
 			$r .= '<input type="hidden" name="ms-cat[]" value="'.$cat->id.'">';
 		}
 		return $r;
+	}
+
+	// The only feature of this helper function is efficency:
+	// All the triggers are only evaluated when the </body>
+	// regexp matches in the rewrite engine. If not (e.g. Script,
+	// CSS, etc. pages), it will never be executed -- no
+	// overhead (stupid "lazy evaluation" implementation for PHP ;-) )
+	private function rewrite_assistant_hook($m) {
+		$assistant = $this->get_assistant();
+		return $m[0].$assistant->get_hook();
 	}
 
 	function strip_proxy_post_fields($post_array) {
@@ -466,12 +473,20 @@ class MsProxyAssistantTrigger {
 /// type, etc. and can create <script> hooks, etc. -- nice things
 /// :-)
 class MsAssistant {
-	public $assistant;        ///<- MediaWiki message for assistant himself
-	//public $assistant_msg;    ///<- Message for the text for the assistant
-	public $assistant_text;   ///<- Or the plain text for the assistant
+	// format of these values: only the name of the message, without
+	// "MediaWiki:" in the front.
+	// shall contain:
+	// assistant        ///<- MediaWiki message for assistant himself
+	// assistant_text   ///<- MediaWiki message for the text
+	public $conf;
+
+	// just to notify that there's nothing set
+	// hmpf, "EMPTY" is reserved in PHP :/
+	const EMPTY_VALUE = '!EMPTY!';
 
 	/// construct by configuration array
 	function __construct( array $config_array ) {
+		/*
 		// get assistant text
 		if(isset($config_array['assistant_msg']))
 			$this->assistant_text = wfMsg('assistant_msg');
@@ -485,25 +500,54 @@ class MsAssistant {
 			$this->assistant = wfMsg($config_array['assistant']);
 		else
 			$this->assistant = Null;
+		*/
+		$this->conf = $config_array;
+
+		if(!isset($this->conf['assistant']))
+			$this->conf['assistant'] = self::EMPTY_VALUE;
+		if(!isset($this->conf['assistant_text']))
+			$this->conf['assistant_text'] = self::EMPTY_VALUE;
 	}
 
-	public function get_script() {
-		// script injection
-		#$assistant_text = Xml::escapeJsString( $this->assistant_text );
-		#$assistant = Xml::escapeJsString( $this->assistant );
-		$assistant_text = urlencode( $this->assistant_text );
-		$assistant = urlencode( $this->assistant );
-/*<script type="text/javascript">
-	// MediaWiki MetaSearch Assistant Wakeup
-	// Code injection by MsProxyDatabaseDriver
-	//try {
-	//	window.parent.msUpdateAssistant("${assistant_text}", "${assistant}");
-	//} catch(e) {} // for testing...
-</script>
-*/
-		return <<<EOF
-<iframe style="display: none;" src="http://biokemika.svenk.homeip.net/extensions/metasearch/test.php?assistant=${assistant}&asssistant_text=${assistant_text}"></iframe>
-EOF;
+	public function get_hook() {
+		// (sub) iframe injection
+		$conf = MsProxyConfiguration::get_instance();
+
+		$html = '<!-- BioKemika Assistant Updater Hook: -->';
+		$html .= '<iframe style="display: none;" src="'.$conf->proxy_url.
+			'?'. http_build_query($this->conf).
+			'"></iframe>';
+		$html .= '<!-- End of Hook -->';
+		return $html;
+	}
+
+	public function print_updater() {
+		?><html><title>MetaSearch Assistant Updater Frame</title>
+		<body>
+		<?php
+			extract($this->conf); // I love this stupid PHP kind-of-magic ;-)
+			
+			if(wfMsgExists($assistant) && wfMsgExists($assistant_text)) {
+				echo '<script type="text/javascript">';
+				echo 'window.top.msUpdateAssistant("';
+				echo Xml::escapeJsString(wfMsg($this->conf['assistant_text']));
+				echo '", "';
+				echo Xml::escapeJsString(wfMsg($this->conf['assistant']));
+				echo '");';
+				echo '</script>';
+			} else {
+				echo "<h3>Won't update assistant</h3>";
+				echo '<pre>';
+				print_r($this->conf);
+				echo '</pre>';
+			}
+		?>
+		This page updates the MetaSearch assistant in the top frame.
+		If this text is displayed in your browser, contact the
+		MetaSearch developer, since he has done bullshit ;-)
+		</body>
+		</html>
+		<?php
 	}
 }
 

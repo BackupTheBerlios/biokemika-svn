@@ -146,8 +146,11 @@ if($debug) {
 // well, that's our body
 $contents = $response->getBody();
 
+// Take a short look if we got HTML (important for rewrite engine)
+$is_html = ( stripos($response->getHeader('Content-Type'), 'html') !== false );
+
 // rewrite the page...
-$db->driver->rewrite_page($url, $contents);
+$db->driver->rewrite_page($url, $contents, $is_html);
 
 // and print it out.
 echo $contents;
