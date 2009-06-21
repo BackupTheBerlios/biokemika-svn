@@ -7,7 +7,7 @@
 }
 
 .ms-catchooser .sub {
-	width: 150px;
+	/*width: 150px;*/
 	float: left;
 	background: #eee;
 	padding: 10px;
@@ -24,14 +24,14 @@
 .ms-catchooser a {
 	display: block;
 	margin: 5px;
-	font-size: 15px;
+	font-size: 130%;
 	text-decoration: none;
 }
 
 .ms-catchooser a .pre {
 	/* helper for <a> design */
 	float: left;
-	background: url(/extensions/metasearch/images/left-bg.a.png) no-repeat;
+	background: url(images/left-bg.a.png) no-repeat;
 	height: 40px;
 	width: 10px;
 }
@@ -39,10 +39,11 @@
 .ms-catchooser a .content {
 	display: block;
 
-	background: url(/extensions/metasearch/images/stretch-bg.a.png) repeat-x;
+	background: url(images/stretch-bg.a.png) repeat-x;
 	background-position: top right;
 
 	height: 40px;
+	line-height: 40px;
 	margin-right: 10px; /* for helper */
 	margin-left: 10px;
 }
@@ -50,7 +51,7 @@
 .ms-catchooser a .post {
 	/* helper for <a> design */
 	float: right;
-	background: url(/extensions/metasearch/images/right-bg.a.png) no-repeat;
+	background: url(images/right-bg.a.png) no-repeat;
 	height: 40px;
 	width: 10px;
 }
@@ -58,6 +59,7 @@
 .ms-catchooser a:link, .ms-catchooser a:visited {
 	color: white;
 	background-color: green;
+	text-decoration: none;
 }
 
 .ms-catchooser a:hover {
@@ -67,6 +69,40 @@
 .ms-catchooser a:active, .ms-catchooser a.selected {
 	background-color: black;
 	font-weight: bold;
+}
+
+/*
+.ms-catchooser a.notyet:link,
+.ms-catchooser a.notyet:visited {
+	background-color: gray;
+}
+*/
+
+/************** ASSISTANT DESIGN ************************/
+.ms-assistant-text {
+	-moz-border-radius-bottomleft:20px;
+	-moz-border-radius-bottomright:20px;
+	-moz-border-radius-topleft:20px;
+	-moz-border-radius-topright:20px;
+	background-color:white;
+	border:10px solid #CCCCCC;
+	margin:5px;
+	padding:8px;
+	position:relative;
+	z-index:5;
+}
+
+.ms-assistant {
+	position: relative;
+	float: left;
+	width: 23%;
+}
+
+.ms-sprechblase {
+	left: 180px;
+	position: absolute;
+	top: -27px;
+	z-index: 6;
 }
 
 

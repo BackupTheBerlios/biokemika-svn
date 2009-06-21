@@ -100,7 +100,7 @@ class MsChooserPage extends MsPage {
 
 		// assistant texts
 		$template->set('assistant_text_msg', 'ms-'.$this->cat_stack->get_top()->id.'-presearch-box' );
-		$template->set('assistant_msg', $this->cat_stack->get_top()->get('assistant', 'ms-assistant-good') );
+		$template->set('assistant_msg', $this->cat_stack->get_top()->get('assistant', 'ms-assistant') );
 
 		$wgOut->addTemplate($template);
 	}
