@@ -1,6 +1,6 @@
 <?php
 /*
- *	$Id: getfile1client.php,v 1.1 2005/05/18 14:38:53 snichol Exp $
+ *	$Id$
  *
  *	Get file client sample.
  *

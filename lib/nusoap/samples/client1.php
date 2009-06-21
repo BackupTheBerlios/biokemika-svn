@@ -1,6 +1,6 @@
 <?php
 /*
- *	$Id: client1.php,v 1.3 2007/11/06 14:48:24 snichol Exp $
+ *	$Id$
  *
  *	Client sample that should get a fault response.
  *

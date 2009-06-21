@@ -1,6 +1,6 @@
 <?php
 /*
- *	$Id: mimeclient.php,v 1.6 2007/04/16 22:08:17 snichol Exp $
+ *	$Id$
  *
  *	MIME client sample.
  *

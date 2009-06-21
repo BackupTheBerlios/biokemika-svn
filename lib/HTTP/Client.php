@@ -39,7 +39,7 @@
  * @package     HTTP_Client
  * @author      Alexey Borzov <avb@php.net>
  * @license     http://opensource.org/licenses/bsd-license.php New BSD License
- * @version     CVS: $Id: Client.php,v 1.11 2008/10/11 14:29:27 avb Exp $
+ * @version     CVS: $Id$
  * @link        http://pear.php.net/package/HTTP_Client
  */
 

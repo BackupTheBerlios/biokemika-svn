@@ -1,6 +1,6 @@
 <?php
 /*
- *	$Id: wsdlclient11.php,v 1.2 2007/04/13 16:52:32 snichol Exp $
+ *	$Id$
  *
  *	WSDL client sample.
  *	Exercises a document/literal NuSOAP service (added nusoap.php 1.73).

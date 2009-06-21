@@ -1,6 +1,6 @@
 <?php
 /*
- *	$Id: wsdlclient6.php,v 1.1 2004/01/26 07:15:20 snichol Exp $
+ *	$Id$
  *
  *	WSDL client sample.
  *

@@ -38,7 +38,7 @@
  *
  * @category    HTTP
  * @package     HTTP_Request
- * @version     CVS: $Id: example.php,v 1.7 2007/05/18 19:20:12 avb Exp $
+ * @version     CVS: $Id$
  * @ignore
  */
 

@@ -5,7 +5,7 @@
  * @category    HTTP
  * @package     HTTP_Client
  * @author      Alexey Borzov <avb@php.net>
- * @version     CVS: $Id: link-checker.php,v 1.3 2007/05/19 14:57:31 avb Exp $
+ * @version     CVS: $Id$
  * @ignore
  */
 

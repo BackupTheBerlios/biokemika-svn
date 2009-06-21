@@ -9,7 +9,7 @@
  *
  * @category    HTTP
  * @package     HTTP_Request
- * @version     CVS: $Id: download-progress.php,v 1.4 2007/10/26 13:45:56 avb Exp $
+ * @version     CVS: $Id$
  * @ignore
  */
 
