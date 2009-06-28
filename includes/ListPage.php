@@ -17,9 +17,11 @@ class MsListPage extends MsPage {
 	function execute( $par ) {
 		global $wgOut;
 		$wgOut->addWikiText(<<<WIKI
-This is a page for debugging and developing the extension, as well as
-for administrators that can check their configuration details by using
-the following listings.
+Diese Seite bietet einen Ueberblick ueber alle eingerichteten Kategorien,
+Datenbanken und Datenbanktreiber sowie relevanten MediaWiki-Messages fuer
+diese Metasearch-Installation. Die Inhalte werden in eher analytischer
+Form praesentiert und sind ggf. nicht gerade selbstredend, dafuer aber knapp
+und uebersichtlich.
 WIKI
 		);
 
@@ -38,6 +40,38 @@ WIKI
 	}
 
 	function list_databases() {
+		global $wgOut;
+
+		$wgOut->addWikiText(<<<WIKI
+Eine Metasearch-Datenbank zeichnet sich durch einen Konfigurationssatz
+sowie einen zugehoerigen Treiber aus. Daher ist jede Datenbank durch eine
+MediaWiki-Seite in der Form <code>MediaWiki:Ms-''name''-database</code>
+definiert.
+WIKI
+		);
+
+		$dbs = array_unique($this->list_of_dbs);
+		sort($dbs);
+		$r = '';
+		foreach($dbs as $id) {
+			$msg = MsDatabase::get_conf_msg_name($id);
+			$r .= "* '''[[MediaWiki:$msg|$id]]''' ";
+			try {
+				$db = new MsDatabase($id);
+			} catch(Exception $e) {
+				$r .= "DOES NOT EXIST: ".$e->getMessage()."\n";
+				continue;
+			}
+			$r .= "\n";
+			
+			foreach($db->conf as $k=>$v) {
+				$r .= "** ''$k'': $v\n";
+			}
+		}
+		$wgOut->addWikiText($r);
+	}
+
+	function list_drivers() {
 
 		// Problem:
 		//   No more simple method to get all installed databases, since
@@ -47,8 +81,6 @@ WIKI
 		// Other issue:
 		//   DRIVERS are much more important and simplier to get
 		//   (include all /databases/* stuff)
-
-		return;
 
 		$r = wfMsg('ms-list-databases-pre');
 		# At this point: Get all dbs from MsDatabaseFactory and
@@ -87,9 +119,18 @@ WIKI;
 		$id = $leaf->id;
 		$r = "${indent} '''[[MediaWiki:ms-$id-category|$id]]''' ".($leaf->exists()?'':"'''DOES NOT EXIST'''")."\n";
 		$r .= "${indent}* ''MSGS'': [[MediaWiki:ms-$id-record|record]], [[MediaWiki:ms-$id-category-input|input]], [[MediaWiki:ms-$id-presearch-box|presearch]], [[MediaWiki:ms-$id-postsearch-box|postsearch]]\n";
+		$r .= "${indent}* ''DATABASES'': ";
+		foreach($leaf->get_databases() as $db) {
+			$r .= "[[MediaWiki:ms-$db-database|$db]], ";
+			$msg = MsDatabase::get_conf_msg_name($db);
+			if(wfMsgExists($msg)) $this->list_of_msgs[] = $msg;
+		}
+		$r .= "\n";
+
 		foreach($leaf->get_conf_array() as $k=>$v) {
 			$r .= "${indent}* ''$k'': $v\n";
 		}
+
 		#if(wfMsgExists($msg)) $this->list_of_msgs += $msg;
 		$this->list_of_msgs = array_merge($this->list_of_msgs, $leaf->get_messages());
 		$this->list_of_dbs = array_merge($this->list_of_dbs, $leaf->get_databases());

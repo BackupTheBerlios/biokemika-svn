@@ -11,14 +11,14 @@ class MsDatabase extends MsMsgConfiguration {
 
 	function __construct( $id ) {
 		$this->id = $id;
-		$this->conf_msg = self::get_conf_msg_name($id);
+		$this->conf_msg = $this->get_conf_msg_name($id);
 
 		if(! self::is_installed($id))
 			throw new MsException("Database $id is not installed in this setup!",
 				MsException::BAD_INPUT);
 
-		if($this->has_configuration($this->conf_msg))
-			$this->read_configuration($this->conf_msg);
+		if($this->has_configuration())
+			$this->read_configuration();
 		else
 			$this->load_basic_configuration();
 		$this->load_driver();
@@ -86,10 +86,14 @@ class MsDatabase extends MsMsgConfiguration {
 		global $msConfiguration, $msDatabaseDriver;
 		if(!isset($msDatabaseDriver[$name])) {
 			// checked whether exists already via is_installed()!
-			if(! include_once $msConfiguration['database_dir'].'/'.strtolower($name).'.php') {
+
+			if(! file_exists(self::get_driver_filename($name) )) {
 				throw new MsException("Error: Metasearch database driver file for $name not found!",
 					MsException::BAD_CONFIGURATION);
 			}
+
+			include_once self::get_driver_filename($name);
+
 			// the file should have added it's entry to $msDatabaseDriver
 			if(! isset($msDatabaseDriver[$name])) {
 				throw new MsException("Missing meta data for metasearch database driver $name!",

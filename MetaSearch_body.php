@@ -268,15 +268,48 @@ class MsMsgConfiguration {
 	/// not only true or false but also the length of that array,
 	/// but that's not that important.
 	private $conf_multi = array();
-	public $conf_msg; ///<- String: Message id
+	/// Set this in your subclass. Then you don't have to give
+	/// the methods the name of your message any more directly.
+	/// Type: String (message id), like in "MediaWiki:$conf_msg"
+	public $conf_msg = Null;
+	/// Nobody needs that:
 	public $conf_text;
+
+	/// Will load configuration for the values of these keys,
+	/// running throught get_conf_msg_name(). This is some kind
+	/// of automatic inheritance system, if you don't want this
+	/// in your config, overwrite this with Null or an empty array.
+	/// Values of this array must be lowercase.
+	public $inherit_keys = array('inherit', 'include');
 	
 	public function has_configuration($message=false) {
+		if(!$message) {
+			if($this->conf_msg) $message = $this->conf_msg;
+			else throw new MsException("Missing message ($message)");
+		}
 		return wfMsgExists($message);
 	}
 
-	/// read in the config file (MediaWiki:$message)
+	/// Overwrite this to get the scheme for your config message.
+	/// @returns something like "ms-${id}-foo".
+	public static function get_conf_msg_name($id) {
+		return Null;
+	}
+
+	/**
+	 * Reads in a config message "file", Mediawiki:$message.
+	 * Calling this method will *extend* the current config
+	 * with the read in attributes. It's inteded to be called
+	 * by extending subclasses, not by any public "foreign"
+	 * instance.
+	 *
+	 * @param $message if false, will try to look at $conf_msg.
+	 **/
 	public function read_configuration($message=false) {
+		if(!$message) {
+			if($this->conf_msg) $message = $this->conf_msg;
+			else throw new MsException("Missing message ($message)");
+		}
 		$lines = explode("\n", wfMsg($message));
 		$this->conf_text = wfMsg($message); # for later use.
 		# last top level entry
@@ -336,6 +369,37 @@ class MsMsgConfiguration {
 		} // for lines
 
 		#var_dump($this->conf, $this->conf_multi);
+
+		// Check for special keys:
+		if(!empty($this->inherit_keys)) {
+			foreach($this->inherit_keys as $inherit_key) {
+				$inherit_key = strtolower($inherit_key);
+				foreach($this->get_array($inherit_key) as $id) {
+					$msg = $this->get_conf_msg_name($id);
+					//print "Inheritance: $id => $msg\n";
+					if($msg) {
+						// the simple way would be:
+						//// $this->read_configuration($msg);
+						// but that makes a PHP
+						// Segmentation fault. So use that
+						// way:
+
+						$sub = new MsMsgConfiguration();
+						$sub->conf_msg = $msg;
+						$sub->inherit_keys = Null;
+						$sub->read_configuration();
+						$this->conf = array_merge($sub->conf, $this->conf);
+						$this->conf_multi = array_merge($sub->conf_multi, $this->conf_multi);
+
+						// well, this works, but it's not clean at
+						// all. Multi inheritance (A -> B -> C)
+						// won't work, only at the first level,
+						// due to the limits of the
+						// get_conf_msg_name() function.
+					}
+				}
+			}
+		} // for inherit_keys
 	} // function read_configuration
 
 	// parse and get configuration key as array.

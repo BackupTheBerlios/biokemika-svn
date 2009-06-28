@@ -257,11 +257,15 @@ class MsCategory extends MsMsgConfiguration {
 	public function __construct($id) {
 		$this->id = $id;
 		$this->conf['id'] = $id; // for better access. Used in userbox.
-		$msg = "ms-${id}-category";
-		if(!wfMsgExists($msg))
+		$this->conf_msg = self::get_conf_msg_name($id);
+		if(! $this->has_configuration() )
 			$this->dummy = true;
 		else
-			$this->read_configuration($msg);
+			$this->read_configuration();
+	}
+
+	public static function get_conf_msg_name($id) {
+		return "ms-${id}-category";
 	}
 
 	// get the identifiers of the named databases OR
@@ -303,6 +307,7 @@ class MsCategory extends MsMsgConfiguration {
 		}
 		return $this->subs;
 	}
+
 	public function has_sub_categories() {
 		$cats = $this->get_sub_categories();
 		return !empty($cats);
