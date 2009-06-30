@@ -110,12 +110,23 @@
 
 .ms-page iframe {
 	width: 100%;
-	height: 300px;
+	height: 500px;
 	border: 3px solid black;
 }
 
 
+.ms-left {
+	width: 77%;
+}
 
+.ms-right {
+	float: right;
+	width: 20%;
+}
+
+.ms-sitenotice-post {
+	clear: both;
+}
 
 
 

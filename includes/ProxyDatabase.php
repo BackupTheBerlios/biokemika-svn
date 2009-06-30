@@ -513,6 +513,12 @@ class MsAssistant {
 			$this->conf['assistant'] = self::EMPTY_VALUE;
 		if(!isset($this->conf['assistant_text']))
 			$this->conf['assistant_text'] = self::EMPTY_VALUE;
+
+		# haesslicher hack, um falsche konfiguration umzubiegen.
+		# TODO: an richtiger stelle implementieren bzw. generell
+		# mal Klarheit bringen in _msg, _text-Dschungel.
+		if(isset($this->conf['assistant_msg']))
+			$this->conf['assistant_text'] = $this->conf['assistant_msg'];
 	}
 
 	public function get_hook() {
@@ -533,14 +539,28 @@ class MsAssistant {
 		<?php
 			extract($this->conf); // I love this stupid PHP kind-of-magic ;-)
 			
+			global $wgParser, $wgOut;
+			$wgTitle = Title::newFromText('MetaSearch', NS_SPECIAL); # voellig egal
+			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant_text']),
+				$wgTitle, $wgOut->parserOptions(), true);
+			$asssistant_text = $parserOutput->getText();
+			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant']),
+				$wgTitle, $wgOut->parserOptions(), true);
+			$assistant = $parserOutput->getText();
+
+
 			if(wfMsgExists($assistant) && wfMsgExists($assistant_text)) {
 				echo '<script type="text/javascript">';
 				echo 'window.top.msUpdateAssistant("';
-				echo Xml::escapeJsString(wfMsg($this->conf['assistant_text']));
+				echo Xml::escapeJsString( $assistant_text );
 				echo '", "';
-				echo Xml::escapeJsString(wfMsg($this->conf['assistant']));
+				echo Xml::escapeJsString( $assistant );
 				echo '");';
 				echo '</script>';
+				echo "<h3>Debug output</h3>";
+				echo '<pre>';
+				var_dump( htmlentities($assistant_text), htmlentities($assistant) );
+				echo "</pre>\n";
 			} else {
 				echo "<h3>Won't update assistant</h3>";
 				echo '<pre>';

@@ -90,12 +90,12 @@ class MsSpecialPage extends SpecialPage {
 
 		// pre and post notice handling
 		$pre = wfMsgNonEmpty('ms-sitenotice');
-		if($pre) $wgOut->addWikiText($pre);
+		if($pre) $wgOut->addWikiText("<div id='ms-sitenotice'>\n$pre\n</div>");
 
 		$page->execute( $par );
 
 		$post = wfMsgNonEmpty('ms-sitenotice-post');
-		if($post) $wgOut->addWikiText($post);
+		if($post) $wgOut->addWikiText("<div id='ms-sitenotice-post'>\n$post\n</div>");
 	} // execute
 
 	function get_sub_page($name) {
