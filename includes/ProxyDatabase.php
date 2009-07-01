@@ -1,4 +1,14 @@
 <?php
+/**
+ * ProxyDatabase.php holds
+ * 
+ *  - MsProxyConfiguration
+ *  - MsProxyDatabaseDriver
+ *  - some global and important functions (no autoloading => have to
+ *    be imported automatically e.g. by ProxyAssistant.php)
+ *
+ *
+ **/
 
 error_reporting(E_ALL);
 
@@ -24,9 +34,9 @@ class MsProxyConfiguration extends MsMsgConfiguration {
 	const DEFAULT_DB = 'pubmed';
 
 	/// including trailing dot
-	public $proxy_domain;// = '.proxy.biokemika.svenk.homeip.net';
+	public $proxy_domain;
 	/// *The* URL path to your proxy.php thingy
-	public $proxy_assistant_url;// = 'http://biokemika.svenk.homeip.net/extensions/metasearch/assistant.php';
+	public $proxy_assistant_url;
 	/// The config array
 	/*
 	private $domains = array(
@@ -154,11 +164,12 @@ class MsProxyDatabaseDriver extends MsDriver {
 
 	function init() {
 		// check and set default parameters
-		$this->database->set_default('start_url',   'http://www.google.de');
-		$this->database->set_default('domain',      'www.google.de');
+		$this->database->set_default('start_url',   'http://www.example.net');
+		$this->database->set_default('domain',      'www.example.net');
 
 		// Trigger initialisieren: Array mit Trigger-Objekten!
-		// Nicht hier, erst wenn man sie braucht.
+		// Nicht hier, erst wenn man sie (wirklich) braucht,
+		// ist perfomanter.
 
 		$this->conf = MsProxyConfiguration::get_instance();
 	}
@@ -168,8 +179,11 @@ class MsProxyDatabaseDriver extends MsDriver {
 	function get_assistant() {
 		$triggers = $this->create_triggers();
 		foreach($triggers as $trigger) {
-			if($trigger->match($this->rewrite_url, $this->rewrite_content))
+			#print "TESTING TRIGGER $trigger\n";
+			if($trigger->match($this->rewrite_url, $this->rewrite_content)) {
+				#print "TRIGGER $trigger MATCHED\n";
 				return $trigger->get_assistant();
+			}
 		}
 		// no trigger matched. Return default assistant...
 		$default_array = $this->database->get('default');
@@ -179,7 +193,8 @@ class MsProxyDatabaseDriver extends MsDriver {
 	/// @returns an array of trigger objects based on the configuration.
 	function create_triggers() {
 		$trigger_array = array();
-		foreach($this->database->get('trigger') as $trigger_conf) {
+		#print $this->database->dump_configuration();
+		foreach($this->database->get_array('trigger') as $trigger_conf) {
 			$trigger_array[] = new MsProxyAssistantTrigger($trigger_conf);
 		}
 		return $trigger_array;
@@ -205,13 +220,6 @@ class MsProxyDatabaseDriver extends MsDriver {
 			&$content
 		);
 
-		# Domain rewriting using regexp:
-		#$content = preg_replace(
-		#	'#expasy.ch|nlm.nih.gov|ebi.ac.uk|hprd.org|pdb.org|abcam.com|itrust.de|aist.go.jp|atcc.org|atcc.com|wisc.edu|ottobib.com#i',
-		#	'\0.proxy.biokemika.svenk.homeip.net',
-		#	&$content
-		#);
-
 		# Only for perfomance (faster page loading):
 		# URL rewriting in images, flash, java:
 		$content = preg_replace_callback(                                                        /* .+?> */
@@ -234,13 +242,6 @@ class MsProxyDatabaseDriver extends MsDriver {
 			&$content
 		);
 
-		# 1. Hook before <body> tag
-		/*$content = preg_replace(
-			'#<\s*body\s#i',
-			$assistant->get_script()."\n<body ",
-			&$content
-		);*/
-
 		# Hook after <body> tag
 		if($is_html) {
 			// rewrite only HTML pages (not scripts!)
@@ -251,7 +252,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 			);
 		}
 
-
+		# Old rewriting rules:
 		/*
 		# 2. General URL rewriting
 		$content = preg_replace_callback(
@@ -276,11 +277,15 @@ class MsProxyDatabaseDriver extends MsDriver {
 		);
 		*/
 
-		//$this->rewrite_execute();
+		# Hook for subclass jobs
+		$this->rewrite_after();
 	}
 
-	/// To be overwritten by extending classes.
-	public function rewrite_execute() { }
+	/// To be overwritten by extending classes. Just can
+	/// do rewrite perfomances after all core work has been
+	/// done.
+	/// @returns not important.
+	public function rewrite_after() { return true; }
 
 	/// Like rewrite_execute, can do forework or
 	/// stop rewriting.
@@ -351,231 +356,6 @@ class MsProxyDatabaseDriver extends MsDriver {
 
 }
 
-/**
- * Can be used like
- * 
- * $trigger = new MsProxyAssistantTrigger($your_configuration_from_database);
- * if( $trigger->matches($your_url, $your_content) )
- *      $dont_need_to_use_default = $trigger->get_assistant($msg, $text);
- *
- **/
-class MsProxyAssistantTrigger {
-	/**
-	 * The rules array can hold parts like (all lowercased!)
-	 * 
-	 * special:
-	 *  - condition: Some thing that combines trigger entries
-	 *               in boolean expressions like AND, OR,
-	 *               Parentheses ( ), etc.
-	 *               If none given, all rules will be OR
-	 *               connected.
-	 *
-	 * rules:
-	 *  - url: on the url
-	 *  - title: on the <title> tag content
-	 *  - content: on the *complete* content
-	 * and for each rule $i
-	 *  - $i_type: one of the class's constants TYPE_REGEX,
-	 *    TYPE_WILDCARD, TYPE_EXACT
-	 *  
-	 *  data:
-	 *  - assistant (allways have to be a message name)
-	 *  - assistant_text, that will be used in favour of
-	 *  - assistant_msg
-	 *
-	 **/
-	private $rules;
-
-	/// types for rules
-	const TYPE_REGEX = 'regex';
-	const TYPE_WILDCARD = 'wildcard';
-	const TYPE_EXACT = 'exact';
-
-	// the name of the key for the default type
-	const DEFAULT_TYPE = 'default_type';
-
-	/// config array (hash) like typical trigger things.
-	function __construct( array $rules ) {
-		$this->rules = array_change_key_case($rules, CASE_LOWER);
-
-		// set defaults:
-		$this->get_rule(self::DEFAULT_TYPE, self::TYPE_WILDCARD);
-	}
-
-	/// does exactly what you think it does.
-	/// @param $default_value Also *SETS* this rule to default value :-)
-	function get_rule( $key, $default_value=Null ) {
-		if(!isset($this->rules[$key])) {
-			if($default_value != Null)
-				$this->rules[$key] = $default_value;
-			return $default_value;
-		} else
-			return $this->rules[$key];
-	}
-
-	/// @returns MsAssistant object created by this trigger
-	function get_assistant() {
-		return new MsAssistant($this->rules);
-	}
-
-	/**
-	 * Returns true if this trigger matches the url/content pair.
-	 * Will iterate throught all rules and evaluate them until
-	 * one matches.
-	 * @returns Boolean
-	 **/
-	function match( $url, &$content ) {
-		foreach($this->rules as $rule_key => $rule_value) {
-			switch($rule_key) {
-				case 'url':
-					return $this->exec_rule( $rule_key, $url);
-				case 'title':
-					if(!preg_match('#title\s*>(.+?)<\s*/\s*title#is', $content, $m))
-						 // no title tag found
-						continue;
-					return $this->exec_rule( $rule_key, $m[1]);
-				case 'content':
-					return $this->exec_rule( $rule_key, $content);
-				default:
-					// should be nonfatal, continueing
-					//throw new MsException("Rule '$rule_key' (value '$rule_value') not known! Rule should be 'url', 'title' or 'content'",
-					//	MsException::BAD_CONFIGURATION);
-					// TODO: Generate warning, fetchable
-			}
-		}
-		// when we reach here, no rule matched.
-		return false;
-	}
-
-	/// exec a rule on a target.
-	/// @returns TRUE if rule matches, FALSE otherwise
-	function exec_rule( $rule_key, &$target ) {
-		if(!isset($this->rules[$rule_key]))
-			throw new MsException("$this does not have $rule_key rule key.",
-				MsException::BAD_CONFIGURATION);
-
-		$rule_value = $this->get_rule($rule_key);
-		$rule_type_key = $rule_key . '_type';
-		$rule_type = $this->get_rule($rule_type_key,
-			$this->get_rule(self::DEFAULT_TYPE));
-		switch($rule_type) {
-			case self::TYPE_WILDCARD:
-				// urghs... we need a wildcard interpreter
-				return match_wildcard($rule_value, $target);
-			case self::TYPE_REGEX:
-				/// FIXME: Throw an Exception if regexp is not valid!
-				return preg_match($rule_value, $target);
-			case self::TYPE_EXACT:
-				// magic ;-)
-				return ($rule_value == $target);
-			default:
-				throw new MsException("Bad Rule Type: $rule_type (looked up in $rule_type_key) for $rule (value: $rule_value)",
-					MsException::BAD_CONFIGURATION);
-		}
-	}
-}
-
-/// An Assistant object. This holds assistant message, assistant
-/// type, etc. and can create <script> hooks, etc. -- nice things
-/// :-)
-class MsAssistant {
-	// format of these values: only the name of the message, without
-	// "MediaWiki:" in the front.
-	// shall contain:
-	// assistant        ///<- MediaWiki message for assistant himself
-	// assistant_text   ///<- MediaWiki message for the text
-	public $conf;
-
-	// just to notify that there's nothing set
-	// hmpf, "EMPTY" is reserved in PHP :/
-	const EMPTY_VALUE = '!EMPTY!';
-
-	/// construct by configuration array
-	function __construct( array $config_array ) {
-		/*
-		// get assistant text
-		if(isset($config_array['assistant_msg']))
-			$this->assistant_text = wfMsg('assistant_msg');
-		else if(isset($config_array['assistant_text']))
-			$this->assistant_text = $config_array['assistant_text'];
-		else
-			$this->assistant_text = Null;
-
-		// get assistant
-		if(isset($config_array['assistant']))
-			$this->assistant = wfMsg($config_array['assistant']);
-		else
-			$this->assistant = Null;
-		*/
-		$this->conf = $config_array;
-
-		if(!isset($this->conf['assistant']))
-			$this->conf['assistant'] = self::EMPTY_VALUE;
-		if(!isset($this->conf['assistant_text']))
-			$this->conf['assistant_text'] = self::EMPTY_VALUE;
-
-		# haesslicher hack, um falsche konfiguration umzubiegen.
-		# TODO: an richtiger stelle implementieren bzw. generell
-		# mal Klarheit bringen in _msg, _text-Dschungel.
-		if(isset($this->conf['assistant_msg']))
-			$this->conf['assistant_text'] = $this->conf['assistant_msg'];
-	}
-
-	public function get_hook() {
-		// (sub) iframe injection
-		$conf = MsProxyConfiguration::get_instance();
-
-		$html = '<!-- BioKemika Assistant Updater Hook: -->';
-		$html .= '<iframe style="display: none;" src="'.$conf->proxy_assistant_url.
-			'?'. http_build_query($this->conf).
-			'"></iframe>';
-		$html .= '<!-- End of Hook -->';
-		return $html;
-	}
-
-	public function print_updater() {
-		?><html><title>MetaSearch Assistant Updater Frame</title>
-		<body>
-		<?php
-			extract($this->conf); // I love this stupid PHP kind-of-magic ;-)
-			
-			global $wgParser, $wgOut;
-			$wgTitle = Title::newFromText('MetaSearch', NS_SPECIAL); # voellig egal
-			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant_text']),
-				$wgTitle, $wgOut->parserOptions(), true);
-			$asssistant_text = $parserOutput->getText();
-			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant']),
-				$wgTitle, $wgOut->parserOptions(), true);
-			$assistant = $parserOutput->getText();
-
-
-			if(wfMsgExists($assistant) && wfMsgExists($assistant_text)) {
-				echo '<script type="text/javascript">';
-				echo 'window.top.msUpdateAssistant("';
-				echo Xml::escapeJsString( $assistant_text );
-				echo '", "';
-				echo Xml::escapeJsString( $assistant );
-				echo '");';
-				echo '</script>';
-				echo "<h3>Debug output</h3>";
-				echo '<pre>';
-				var_dump( htmlentities($assistant_text), htmlentities($assistant) );
-				echo "</pre>\n";
-			} else {
-				echo "<h3>Won't update assistant</h3>";
-				echo '<pre>';
-				print_r($this->conf);
-				echo '</pre>';
-			}
-		?>
-		This page updates the MetaSearch assistant in the top frame.
-		If this text is displayed in your browser, contact the
-		MetaSearch developer, since he has done bullshit ;-)
-		</body>
-		</html>
-		<?php
-	}
-}
 
 
 /********************* helper functions (quite global) *******************/
@@ -669,17 +449,19 @@ function glue_url($parsed) {
 }
 
 /**
- * A simple wildcard matcher. Written on myself, posted to php.net
+ * A simple wildcard matcher. Written on myself, posted to php.net.
+ * This matches like glob, e.g. "foo.*" on "foo.bar" and "*b*" on "abbbc".
  * @param $wildcard_pattern The wildcard pattern
  * @param $haystack Where to write to
  * @returns TRUE or FALSE
  **/
 function match_wildcard( $wildcard_pattern, $haystack ) {
-	$regex = str_replace(
+	$regex = '/^' . str_replace(
 		array("\*", "\?"), // wildcard chars
 		array('.*','.'),   // regexp chars
 		preg_quote($wildcard_pattern, '/')
-	);
+	) . '$/is';
 
-	return preg_match('/^'.$regex.'$/is', $haystack);
+	#print "Running $regex on $haystack...";
+	return preg_match($regex, $haystack);
 }

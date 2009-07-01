@@ -92,7 +92,14 @@ class MsSpecialPage extends SpecialPage {
 		$pre = wfMsgNonEmpty('ms-sitenotice');
 		if($pre) $wgOut->addWikiText("<div id='ms-sitenotice'>\n$pre\n</div>");
 
-		$page->execute( $par );
+		try {
+			$page->execute( $par );
+		} catch(MsException $e) {
+			$template = new MsExceptionTemplate();
+
+			$template->setRef('exception', $e);
+			$wgOut->addTemplate($template);
+		}
 
 		$post = wfMsgNonEmpty('ms-sitenotice-post');
 		if($post) $wgOut->addWikiText("<div id='ms-sitenotice-post'>\n$post\n</div>");
@@ -121,38 +128,6 @@ abstract class MsPage {
 	#public $controller;
 	public $special_page;
 
-	// should be placed somewhere here:
-/*
-	// General concept for getting user input data.
-	/// User input data
-	public $ms_query;
-	public $ms_category_stack;
-	public $ms_input_databases;
-
-	/// This will need *everything*. And fill our thingies.
-	function validate_user_data() {
-		global $wgRequest, $msCategories;
-
-		$this->ms_query = $wgRequest->getText('ms_query');
-		if(empty($this->ms_query)) {
-			throw new MsException('Please enter an input text.',
-				MsException::BAD_INPUT);
-		}
-
-		// try{ } catch(MsException e) { }-Konstrukt um das hier:
-		$this->ms_category_stack = new MsCategoryStack( $wgRequest->getArray('ms_cat') );
-
-		if( $this->ms_category_stack->get_top()->is_root() ) {
-			throw new MsException('Please select a category.',
-				MsException::BAD_INPUT);
-		} else if( $this->ms_category_stack->get_top()->has_databases() ) {
-			throw new MsException('Please select a category that has databases!',
-				MsException::BAD_INPUT);
-		}
-
-		return true;
-	}
-*/
 	/**
 	 * Create a new MsPage. It's not intended to overwrite this
 	 * function. Use the 'executed' method to initialize your
@@ -285,7 +260,7 @@ class MsMsgConfiguration {
 	public function has_configuration($message=false) {
 		if(!$message) {
 			if($this->conf_msg) $message = $this->conf_msg;
-			else throw new MsException("Missing message ($message)");
+			else throw new MsException("MsMsgConfiguration: Missing message param (<b>$message</b>)");
 		}
 		return wfMsgExists($message);
 	}
@@ -391,6 +366,9 @@ class MsMsgConfiguration {
 						$this->conf = array_merge($sub->conf, $this->conf);
 						$this->conf_multi = array_merge($sub->conf_multi, $this->conf_multi);
 
+						#print "Inherited from $msg...\n";
+						#var_dump($this->conf);
+
 						// well, this works, but it's not clean at
 						// all. Multi inheritance (A -> B -> C)
 						// won't work, only at the first level,
@@ -448,6 +426,12 @@ class MsMsgConfiguration {
 		return $was_set;
 	}
 
+	/// for debugging: return string with array dumps
+	public function dump_configuration() {
+		$s = "MsMsgConfiguration:";
+		$s .= var_dump_ret($this);
+		return $s;
+	}
 }
 
 /********************* MsException Class ***************************/
@@ -457,7 +441,7 @@ class MsMsgConfiguration {
  * and the Metasearch system will create the right action...
  **/
 class MsException extends MWException {
-	#public $type; # => $this->code (Exception)
+	# codes for $this->code (Exception):
 	const BAD_INPUT = 1;
 	const BAD_INSTALLATION = 2;
 	const BAD_CONFIGURATION = 3;

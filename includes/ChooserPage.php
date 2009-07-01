@@ -31,7 +31,6 @@ error_reporting(E_ALL);
 class MsChooserPage extends MsPage {
 	// input data
 	public $cat_stack;
-	
 
 	function execute( $par ) {
 		global $wgRequest, $wgOut, $wgUser;

@@ -1,8 +1,13 @@
 <?php
-/* DB driver for HTTP "brute force" databases. This will
+ /*
+ ** This is an OLD database/database driver for the QueryDatabase
+ ** system (or even much older). There's no need any more for this
+ ** file in the current setup.
+ */
+
+
+/** DB driver for HTTP "brute force" databases. This will
  * set up the Pear module HTTP_Client.
- *
- *
  */
 
 // set up local PEAR directory

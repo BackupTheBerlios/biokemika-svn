@@ -5,7 +5,11 @@ class MsProxyTemplate extends MsQuickTemplate {
 
 	function execute() {
 		?>
-<div class="ms-page">
+<div class="ms-page ms-proxydriver">
+	<div class="ms-navbar">
+		<a href="#">&lt; Eine andere Kategorie wählen</a>
+		| <a href="#">BioKemika verlassen...</a>
+	</div>
 	<div class="ms-right">
 		<div class="ms-assistant-text" id="ms-assistant-msg">
 			<?php $this->html( $this->get('assistant_text') ); ?>

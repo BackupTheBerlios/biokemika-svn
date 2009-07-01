@@ -1,4 +1,9 @@
 <?php
+ /*
+ ** This is an OLD database/database driver for the QueryDatabase
+ ** system (or even much older). There's no need any more for this
+ ** file in the current setup.
+ */
 
 # FIXME: There is $ms_dir, but it's empty. Strange!
 require_once 'extensions/metasearch/lib/nusoap/lib/nusoap.php';

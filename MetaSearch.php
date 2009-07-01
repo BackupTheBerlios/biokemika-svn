@@ -98,12 +98,15 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 	'MsChooserTemplate' => "$dir/includes/ChooserTemplate.php",
 	'MsException' => "$dir/includes/Controller.php",
 	'MsMsgConfiguration' => "$dir/MetaSearch_body.php", # for other entrypoints
-	'MsQuickTemplate' => "$dir/includes/ChooserTemplate.php",
+
+	'MsQuickTemplate' => "$dir/includes/QuickTemplate.php",
+	'MsExceptionTemplate' => "$dir/includes/QuickTemplate.php",
 
 	'MsDriver' => "$dir/includes/Database.php",
 	'MsProxyDatabaseDriver' => "$dir/includes/ProxyDatabase.php",
 	'MsProxyTemplate' => "$dir/includes/ProxyPage.php",
 	'MsProxyPage' => "$dir/includes/ProxyPage.php",
 	'MsProxyConfiguration' => "$dir/includes/ProxyDatabase.php",
-	'MsAssistant' => "$dir/includes/ProxyDatabase.php",
+	'MsAssistant' => "$dir/includes/ProxyAssistant.php",
+	'MsProxyAssistantTrigger' => "$dir/includes/ProxyAssistant.php",
 );

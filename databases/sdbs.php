@@ -12,41 +12,37 @@ $msDatabaseDriver['sdbs'] = array(
 );
 
 class MsSDBSDatabaseDriver extends MsProxyDatabaseDriver {
-	// you've got
 	// $this->rewrite_url
 	// $this->rewrite_content
-	// now start. ;-)
-	function rewrite_execute() {
+	function rewrite_before() {
+		/*
+		 * Zumindest aktuell (07.09) sind diese Rewrites immer noch
+		 * wichtig.
+		 *
+		 */
+
 		$this->rewrite_content = str_replace(
 			array(
 				'if( self != top ) { top.location = self.location; }',
-				'/sdbs/cgi-bin/cre_index.cgi?lang=eng',
-				'document.form.action="direct_frame_top.cgi"',
-				'../LINKS/',
 			),
 			array(
 				"/* don't kill biokemika :-) */",
-				$this->proxify_url('/sdbs/cgi-bin/cre_index.cgi?lang=eng'),
-				'document.form.action="'.$this->proxify_url('/sdbs/cgi-bin/direct_frame_top.cgi').'"',
-				$this->proxify_url('/sdbs/LINKS/'),
 			),
 			$this->rewrite_content
 		);
 
-		#$this->rewrite_content = preg_replace_callback(
-		#	'#http://www.sigmaaldrich.com#i',
-		#	array(&$this, 'sa_rewrite'),
-		#	$this->rewrite_content
-		#);
-		#$this->rewrite_content = preg_replace()
-	}
-
-	function sa_rewrite($m) {
-		return $this->proxify_url($m[0]);
+		return true;
 	}
 }
- 
 
+
+/**************************************************************************/
+ 
+ /*
+ ** This is an OLD database/database driver for the QueryDatabase
+ ** system (or even much older). There's no need any more for this
+ ** file in the current setup.
+ */
 
 
 /*

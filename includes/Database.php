@@ -14,7 +14,7 @@ class MsDatabase extends MsMsgConfiguration {
 		$this->conf_msg = $this->get_conf_msg_name($id);
 
 		if(! self::is_installed($id))
-			throw new MsException("Database $id is not installed in this setup!",
+			throw new MsException("Database <b>$id</b> is not installed on this setup!",
 				MsException::BAD_INPUT);
 
 		if($this->has_configuration())
@@ -88,7 +88,7 @@ class MsDatabase extends MsMsgConfiguration {
 			// checked whether exists already via is_installed()!
 
 			if(! file_exists(self::get_driver_filename($name) )) {
-				throw new MsException("Error: Metasearch database driver file for $name not found!",
+				throw new MsException("Database <b>$name</b>: Driver file <tt>".self::get_driver_filename($name)."</tt> not found!",
 					MsException::BAD_CONFIGURATION);
 			}
 

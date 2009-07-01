@@ -1,4 +1,11 @@
 <?php
+ /*
+ ** This is an OLD database/database driver for the QueryDatabase
+ ** system (or even much older). There's no need any more for this
+ ** file in the current setup.
+ */
+
+
 /**
  * This is an example Metaserach "database driver". That sounds
  * worse than it is: It just implements these classes:

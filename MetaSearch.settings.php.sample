@@ -1,0 +1,23 @@
+<?php
+/*
+ * This is a sample of your local MetaSearch settings.
+ * Call this file MetaSearch.settings.php in your
+ * metasearch extension directory.
+ */
+
+error_reporting(E_ALL);
+
+$dir = dirname(__FILE__);
+global $msConfiguration;
+
+$msConfiguration = array(
+	'proxy-entry-point' => '/path/to/mediawiki/extensions/metasearch/proxy.php',
+	'default-record-message' => 'Ms-record',
+	'root-category-name'  => 'root',
+	'database_dir' => $dir.'/databases', 
+
+	'proxy_domain' => '.proxy.example.net',
+	'proxy_assistant_url' => 'http://wiki.example.net/path/to/mediawiki/extensions/metasearch/assistant.php',
+);
+
+?>

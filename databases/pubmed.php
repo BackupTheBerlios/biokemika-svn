@@ -1,15 +1,6 @@
 <?php
 error_reporting(E_ALL);
 
-// This needs the SimpleXML extension activated!!!!
-// Remember whiel reemerging php!!!
-
-// Steps:
-// 1) Get IDs via eSearch
-// 2) Get Title, Abstract, Author, ... via eFetch
-// 3) Get References and URLs via eLink
-// etc.
-
 global $msDatabaseDriver;
 $msDatabaseDriver['pubmed'] = array(
 	'class' => 'MsPubMedDatabaseDriver',
@@ -20,21 +11,12 @@ $msDatabaseDriver['pubmed'] = array(
 );
 
 class MsPubMedDatabaseDriver extends MsProxyDatabaseDriver {
-	// you've got
-	// $this->rewrite_url
-	// $this->rewrite_content
-	// now start. ;-)
-	function rewrite_execute() {
-		/*$this->rewrite_content = preg_replace_callback(
-			'#http://www.sigmaaldrich.com#i',
-			array(&$this, 'sa_rewrite'),
-			$this->rewrite_content
-		);
-		*/
-		#$this->rewrite_content = preg_replace()
-	}
-
 	function rewrite_before() {
+		/*
+		 * ALTER REWRITE, alles, was jetzt nach Domains aussieht,
+		 * wird automatisch umgeschrieben, ist also UNNOETIG.
+		 */
+
 		if($this->rewrite_url == 'http://www.ncbi.nlm.nih.gov/portal/js/portal.js') {
 			$this->rewrite_content = str_replace(
 				'document.cookie=x+"nlm.nih.gov"',
@@ -43,20 +25,26 @@ class MsPubMedDatabaseDriver extends MsProxyDatabaseDriver {
 			);
 			return false;
 		}
-
-		// this works too:
-		/*
-		$skip_urls = array(
-		);
-		if(in_array($this->rewrite_url, $skip_urls))
-			// skip
-			return false;
-		*/
 		return true;
 	}
 }
- 
 
+/********************************************************************/
+
+ /*
+ ** This is an OLD database/database driver for the QueryDatabase
+ ** system (or even much older). There's no need any more for this
+ ** file in the current setup.
+ */
+
+// This needs the SimpleXML extension activated!!!!
+// Remember whiel reemerging php!!!
+
+// Steps:
+// 1) Get IDs via eSearch
+// 2) Get Title, Abstract, Author, ... via eFetch
+// 3) Get References and URLs via eLink
+// etc.
 
 /*
 $msDriver['pubmed'] = array(
@@ -190,7 +178,3 @@ class MsDatabase_pubmed extends MsDatabase {
 }
 
 */
-
-
-
-?>
