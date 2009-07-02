@@ -205,22 +205,12 @@ class MsAssistant {
 	const EMPTY_VALUE = '!EMPTY!';
 
 	/// construct by configuration array
-	function __construct( array $config_array ) {
-		/*
-		// get assistant text
-		if(isset($config_array['assistant_msg']))
-			$this->assistant_text = wfMsg('assistant_msg');
-		else if(isset($config_array['assistant_text']))
-			$this->assistant_text = $config_array['assistant_text'];
-		else
-			$this->assistant_text = Null;
+	/// @param $config_array Must be an Array, else throws Exception.
+	function __construct( $config_array ) {
+		// using __construct( array $config_array) was not so nice :(
+		if(!is_array($config_array))
+			throw new MsException("AssistantTrigger: $config_array is not an array.");
 
-		// get assistant
-		if(isset($config_array['assistant']))
-			$this->assistant = wfMsg($config_array['assistant']);
-		else
-			$this->assistant = Null;
-		*/
 		$this->conf = $config_array;
 
 		if(!isset($this->conf['assistant']))

@@ -187,6 +187,12 @@ class MsProxyDatabaseDriver extends MsDriver {
 		}
 		// no trigger matched. Return default assistant...
 		$default_array = $this->database->get('default');
+		if(!$default_array)
+			// missing default keys...
+			$default_array = array(
+				'assistant' => 'no-assistant',
+				'assistant_msg' => 'Nothing to say'
+			);
 		return new MsAssistant($default_array);
 	}
 
@@ -217,7 +223,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 		$content = str_ireplace(
 			$this->conf->get_all_domains(),
 			$this->conf->get_all_domains_proxified(),
-			&$content
+			$content
 		);
 
 		# Only for perfomance (faster page loading):
@@ -225,7 +231,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 		$content = preg_replace_callback(                                                        /* .+?> */
 			'#(<\s*(?:img|object|embed|applet).+?(?:src|background|codebase|archive)=["\'])(.+?)(["\'])#si',
 			array(&$this, 'rewrite_link_helper'),
-			&$content
+			$content
 		);
 
 		# Domain *back*writing in CSS and inline CSS:
@@ -239,7 +245,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 			// alternative: [^{]*; after the closing \)
 			'#([\s:]url\(\s*["\']?)(.+?)(\s*["\']?\))#si',
 			array(&$this, 'rewrite_link_helper'),
-			&$content
+			$content
 		);
 
 		# Hook after <body> tag
@@ -248,7 +254,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 			$content = preg_replace_callback(
 				'#<s*body.*?>#i',
 				array(&$this, 'rewrite_assistant_hook'),
-				&$content
+				$content
 			);
 		}
 

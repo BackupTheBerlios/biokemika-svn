@@ -7,8 +7,11 @@ class MsProxyTemplate extends MsQuickTemplate {
 		?>
 <div class="ms-page ms-proxydriver">
 	<div class="ms-navbar">
-		<a href="#">&lt; Eine andere Kategorie wählen</a>
-		| <a href="#">BioKemika verlassen...</a>
+		<?php $this->wiki( wfMsg('ms-proxypage-top', $this->get('catchooser_link'),
+			$this->get('leave_biokemika_link')
+		)); ?>
+		<!-- <a href="#">&lt; Eine andere Kategorie wählen</a>
+		| <a href="#">BioKemika verlassen...</a>-->
 	</div>
 	<div class="ms-right">
 		<div class="ms-assistant-text" id="ms-assistant-msg">
@@ -81,6 +84,16 @@ class MsProxyPage extends MsPage {
 		$template->set('assistant_text', wfMsg('ms-assistant-starting-bla'));
 		$template->set('assistant_msg', 'ms-assistant-happy');
 		$template->set('iframe_start', $proxy_conf->proxify( $start_url ));
+
+		# das ist jetzt eher quick & dirty, aber den cat_stack brauch dann keiner mehr:
+		$cat_stack->pop(); # poppen fuer catchooser_link (damit der catchooser nicht direkt zur cat leitet)
+
+		$template->set('leave_biokemika_link', '#');
+		$template->set('catchooser_link', $this->special_page->get_sub_title('choose')->escapeFullURL(
+			# haesslich: [] a la rawurlencode() kodieren, damit mediawiki die URL
+			# als Link erkennt beim Parsen
+			str_replace('[]', '%5B%5D', $cat_stack->build_query('ms-cat') )
+		));
 		//print $template->get('iframe_start');exit();
 
 		$wgOut->addTemplate($template);
