@@ -35,11 +35,7 @@ class MsChooserPage extends MsPage {
 	function execute( $par ) {
 		global $wgRequest, $wgOut, $wgUser;
 
-		try {
-			$this->cat_stack = new MsCategoryStack( $wgRequest->getArray('ms-cat') );
-		} catch(MsException $e) {
-			$wgOut->add("Stack: {$this->cat_stack}.<br>Your params are bad: $e");
-		}
+		$this->cat_stack = new MsCategoryStack( $wgRequest->getArray('ms-cat') );
 
 		$chosen_db = $wgRequest->getText('ms-db', false);
 		if($chosen_db) {
@@ -67,7 +63,7 @@ class MsChooserPage extends MsPage {
 			$dbs = $this->cat_stack->get_top()->get_databases(MsCategory::AS_OBJECTS);
 
 			if(empty($dbs)) {
-				throw new MsException("Top cat of {$this->cat_stack} has no databases attached",
+				throw new MsException("Top cat of {$this->cat_stack} has no databases attached!",
 					MsException::BAD_CONFIGURATION);
 			}
 
@@ -77,21 +73,27 @@ class MsChooserPage extends MsPage {
 					// but they are all Query Databases, so
 					// let MsQueryPage do it's job
 					$this->redirect('query');
+					return;
 				} else {
 					// Since we cannot merge different databases on
 					// one page, display a database chooser.
 					$template = new MsChooserTemplate();
-					$template->setRef('dbs', $dbs);
 					$this->display_cat_chooser($template);
 				}
 			} else {
 				// Only one database in this cat.
 				// Relaxed situation :-)
+				// Since 04.07: test to display a chooser... too ;-)
+				/*
 				$db = $dbs[0];
 				$this->redirect_to_db($db);
 
 				$subtitle = $db->is_driver_type('proxydriver') ? 'proxy' : 'query';
 				$this->redirect( $subtitle );
+				*/
+
+				$this->display_cat_chooser();
+
 			}
 		} // if ...->has_sub_categories()
 	} // function execute

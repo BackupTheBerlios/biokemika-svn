@@ -80,15 +80,18 @@
 
 /************* DB CHOOSER *****************/
 .ms-dbchooser {
-	margin-left: 25%; /* Bc abstand */
+	/*width: 150px;*/
+	float: left;
+	background: #eee;
+	padding: 10px;
+	margin: 10px;
 }
 
 .ms-dbchooser .ms-db {
 	border: 2px solid black;
-	padding: 20px;
-	width: 120px;
-	margin: 20px;
-	float: left;
+	padding: 10px;
+	width: 180px;
+	margin-bottom: 10px;
 }
 
 

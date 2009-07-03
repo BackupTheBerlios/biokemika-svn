@@ -65,11 +65,6 @@ class MsChooserTemplate extends MsQuickTemplate {
 	<div class="ms-assistant">
 		<?php $this->wiki( $assistant ); ?>
 	</div>
-	<?php
-
-	if($stack->get_top()->has_sub_categories()) {
-			// display the ordinary catchooser.
-	?>
 	<div class="ms-catchooser">
 	<?php
 		// $this->data['stack'] = $stack = MsCategoryStack object
@@ -146,8 +141,8 @@ class MsChooserTemplate extends MsQuickTemplate {
 	</div><!--ms-catchooser -->
 	<?php
 
-	} /* if category has subcats (=> catchooser) */
-	else {
+	if(! $stack->get_top()->has_sub_categories()) {
+		// display the db chooser
 	?>
 	<div class="ms-dbchooser">
 	<?php
@@ -174,7 +169,7 @@ class MsChooserTemplate extends MsQuickTemplate {
 	?>
 	</div><!--ms-dbchooser-->
 	<?php
-	} /* endif category has subcats */
+	} /* endif dbchooser */
 
 	?>
 </div><!--ms-page-->
