@@ -62,10 +62,14 @@ class MsChooserPage extends MsPage {
 			// Check what we've got for databases:
 			$dbs = $this->cat_stack->get_top()->get_databases(MsCategory::AS_OBJECTS);
 
+			// das ist nicht mehr umbedingt schlimm -- wird
+			// halt nix angezeigt in dem dbchooser.
+			/*
 			if(empty($dbs)) {
 				throw new MsException("Top cat of {$this->cat_stack} has no databases attached!",
 					MsException::BAD_CONFIGURATION);
 			}
+			*/
 
 			if(count($dbs) > 1) {
 				// the cat has more than one database
