@@ -75,8 +75,6 @@ $wgAutoloadClasses['MsSpecialPage'] = "$dir/MetaSearch_body.php";
 $wgSpecialPages['Metasearch'] = 'MsSpecialPage';
 
 $wgAutoloadClasses = $wgAutoloadClasses + array(
-	'MsController' => "$dir/includes/Controller.php",
-
 	'MsDatabase' => "$dir/includes/Database.php",
 	'MsDatabaseFactory' => "$dir/includes/Database.php",
 	'MsQuery' => "$dir/includes/Database.php",
@@ -96,7 +94,7 @@ $wgAutoloadClasses = $wgAutoloadClasses + array(
 
 	'MsChooserPage' => "$dir/includes/ChooserPage.php",
 	'MsChooserTemplate' => "$dir/includes/ChooserTemplate.php",
-	'MsException' => "$dir/includes/Controller.php",
+	'MsException' => "$dir/includes/MetaSearch_body.php",
 	'MsMsgConfiguration' => "$dir/MetaSearch_body.php", # for other entrypoints
 
 	'MsQuickTemplate' => "$dir/includes/QuickTemplate.php",
