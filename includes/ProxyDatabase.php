@@ -207,7 +207,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 	}
 
 	/// The real rewriting page thingy
-	public $rewrite_url = Null;
+	public $rewrite_url = Null; ///< deproxified.
 	public $rewrite_content = Null;
 	public $rewrite_is_html = true;
 	function rewrite_page( $url, &$content, $is_html ) {
@@ -338,6 +338,7 @@ class MsProxyDatabaseDriver extends MsDriver {
 	// overhead (stupid "lazy evaluation" implementation for PHP ;-) )
 	private function rewrite_assistant_hook($m) {
 		$assistant = $this->get_assistant();
+		$assistant->conf['deproxified_url']  = $this->rewrite_url;
 		return $m[0].$assistant->get_hook();
 	}
 

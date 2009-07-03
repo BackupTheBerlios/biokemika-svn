@@ -20,12 +20,14 @@ require_once( '../../includes/WebStart.php' );
 require_once('MetaSearch_body.php'); // important defs
 
 // check params
-$conf = array();
-$conf['assistant'] = $wgRequest->getVal('assistant', MsAssistant::EMPTY_VALUE);
-$conf['assistant_text'] = $wgRequest->getVal('assistant_text', MsAssistant::EMPTY_VALUE);
+#$conf = array();
+#$conf['assistant'] = $wgRequest->getVal('assistant', MsAssistant::EMPTY_VALUE);
+#$conf['assistant_text'] = $wgRequest->getVal('assistant_text', MsAssistant::EMPTY_VALUE);
+# simply take ALL params. This is no security risk at all, just
+# much more flexible.
 
 // create assistant
-$assistant = new MsAssistant($conf);
+$assistant = new MsAssistant( $_GET );
 $assistant->print_updater();
 
 // EOF.

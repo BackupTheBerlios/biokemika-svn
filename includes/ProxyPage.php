@@ -22,7 +22,7 @@ class MsProxyTemplate extends MsQuickTemplate {
 		</div>
 	</div>
 	<div class="ms-left">
-		<iframe src="<?php $this->html('iframe_start'); ?>">
+		<iframe id="ms-proxy-frame" src="<?php $this->html('iframe_start'); ?>">
 			<h3>Metasearch iframe</h3>
 			<p>The ProxyDatabaseDriver needs iframes and extensive javascript
 			to work. Your browser doesn't seem to support that. These are the

@@ -233,6 +233,27 @@ class MsAssistant {
 		$html .= '<iframe style="display: none;" src="'.$conf->proxy_assistant_url.
 			'?'. http_build_query($this->conf).
 			'"></iframe>';
+		$html .= '<!-- BioKemika Auto Iframe height updater hook -->';
+		$target_url = $conf->proxy_assistant_url.'?height=';
+		$html .= <<<SCRIPT
+<script type="text/javascript">
+// This is the MetaSearch iframe height updater injection
+//try{
+	var old_onload = window.onload;
+	var target_url = "$target_url";
+	window.onload = function(){
+		if (typeof(old_onload)=="function"){
+			old_onload();
+		}
+		height = document.body.scrollHeight + 10;
+		document.getElementById('ms-proxy-iframe-height-updater-injection').src =
+			target_url + height;
+	};
+//} catch(e) {}
+</script><iframe style="display:none;" id="ms-proxy-iframe-height-updater-injection" 
+  src=""></iframe>
+SCRIPT
+		;
 		$html .= '<!-- End of Hook -->';
 		return $html;
 	}
@@ -241,38 +262,46 @@ class MsAssistant {
 		?><html><title>MetaSearch Assistant Updater Frame</title>
 		<body>
 		<?php
-			#extract($this->conf); // I love this stupid PHP kind-of-magic ;-)
-
 			// gut... Ja... Texte halt durch den Parser jagen.
 			// Immerhin soll wiki-markup verwendet werden!
 			global $wgParser, $wgOut;
 			$wgTitle = Title::newFromText('MetaSearch', NS_SPECIAL); # voellig egal
-			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant_text']),
-				$wgTitle, $wgOut->parserOptions(), true);
-			$assistant_text = $parserOutput->getText();
-			$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant']),
-				$wgTitle, $wgOut->parserOptions(), true);
-			$assistant = $parserOutput->getText();
+			if(isset($this->conf['assistant_text'])) {
+				$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant_text']),
+					$wgTitle, $wgOut->parserOptions(), true);
+				$this->conf['assistant_text_content'] = $parserOutput->getText();
+			}
+			if(isset($this->conf['assistant'])) {
+				$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant']),
+					$wgTitle, $wgOut->parserOptions(), true);
+				$this->conf['assistant_content'] = $parserOutput->getText();
+			}
+			$this->conf['empty_value'] = self::EMPTY_VALUE; // quasi meine "NULL"-Referenz.
 
-
-			if(wfMsgExists($assistant) && wfMsgExists($assistant_text)) {
+			//if(wfMsgExists($assistant) && wfMsgExists($assistant_text)) {
 				echo '<script type="text/javascript">';
-				echo 'window.top.msUpdateAssistant("';
-				echo Xml::escapeJsString( $assistant_text );
-				echo '", "';
-				echo Xml::escapeJsString( $assistant );
-				echo '");';
+				echo 'window.top.msUpdateProxyPage(';
+				$json = json_encode( $this->conf );
+				echo $json;
+				# vor nutzung von json:
+				# echo '"';
+				# echo Xml::escapeJsString( $assistant_text );
+				# echo '", "';
+				# echo Xml::escapeJsString( $assistant );
+				# echo '"'";
+				echo ');';
 				echo '</script>';
 				echo "<h3>Debug output</h3>";
 				echo '<pre>';
-				var_dump( htmlentities($assistant_text), htmlentities($assistant) );
+				echo nl2br(htmlentities($json));
+				#var_dump( htmlentities($assistant_text), htmlentities($assistant) );
 				echo "</pre>\n";
-			} else {
+			/*} else {
 				echo "<h3>Won't update assistant</h3>";
 				echo '<pre>';
 				print_r($this->conf);
 				echo '</pre>';
-			}
+			}*/
 		?>
 		This page updates the MetaSearch assistant in the top frame.
 		If this text is displayed in your browser, contact the
@@ -281,4 +310,55 @@ class MsAssistant {
 		</html>
 		<?php
 	}
+} // class MsUpdater
+
+
+/**
+ * JSON Encoding
+ *
+ **/
+if (!function_exists('json_encode'))
+{
+  function json_encode($a=false)
+  {
+    if (is_null($a)) return 'null';
+    if ($a === false) return 'false';
+    if ($a === true) return 'true';
+    if (is_scalar($a))
+    {
+      if (is_float($a))
+      {
+        // Always use "." for floats.
+        return floatval(str_replace(",", ".", strval($a)));
+      }
+
+      if (is_string($a))
+      {
+        static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
+        return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $a) . '"';
+      }
+      else
+        return $a;
+    }
+    $isList = true;
+    for ($i = 0, reset($a); $i < count($a); $i++, next($a))
+    {
+      if (key($a) !== $i)
+      {
+        $isList = false;
+        break;
+      }
+    }
+    $result = array();
+    if ($isList)
+    {
+      foreach ($a as $v) $result[] = json_encode($v);
+      return '[' . join(',', $result) . ']';
+    }
+    else
+    {
+      foreach ($a as $k => $v) $result[] = json_encode($k).':'.json_encode($v);
+      return '{' . join(',', $result) . '}';
+    }
+  }
 }
