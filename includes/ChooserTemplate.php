@@ -27,8 +27,11 @@ class MsChooserTemplate extends MsQuickTemplate {
 
 			$assistant_msg = $stack->get_top()->get(
 				'assistant',
-				'ms-assistant-happy' # I hate PHP. MediaWiki... # I hate PHP. MediaWiki.....
+				'ms-assistant-happy-right' # I hate PHP. MediaWiki... # I hate PHP. MediaWiki.....
 			);
+
+			# brute force:
+			$assistant_msg = 'ms-assistant-happy-right';
 
 			$assistant_text = wfMsg( $assistant_text_msg );
 			$assistant = wfMsg($assistant_msg);

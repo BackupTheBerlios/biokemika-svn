@@ -104,7 +104,11 @@ class MsChooserPage extends MsPage {
 		global $wgOut;
 
 		// ...
-		$wgOut->addHTML('Display some kind of DB chooser.');
+		#$wgOut->addHTML('Display some kind of DB chooser.');
+		throw new MsException("Diese Kategorie stellt mehrere Datenbanken
+			zur Verfuegung. Dieses Feature wurde leider noch nicht
+			komplett fertiggestellt.");
+
 	}
 
 	function link_title_for(MsCategory $cat) {

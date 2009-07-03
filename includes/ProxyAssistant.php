@@ -266,12 +266,14 @@ SCRIPT
 			// Immerhin soll wiki-markup verwendet werden!
 			global $wgParser, $wgOut;
 			$wgTitle = Title::newFromText('MetaSearch', NS_SPECIAL); # voellig egal
-			if(isset($this->conf['assistant_text'])) {
+			if(isset($this->conf['assistant_text'])
+				&& $this->conf['assistant_text'] != self::EMPTY_VALUE) {
 				$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant_text']),
 					$wgTitle, $wgOut->parserOptions(), true);
 				$this->conf['assistant_text_content'] = $parserOutput->getText();
 			}
-			if(isset($this->conf['assistant'])) {
+			if(isset($this->conf['assistant']) &&
+				$this->conf['assistant'] != self::EMPTY_VALUE) {
 				$parserOutput = $wgParser->parse( wfMsg($this->conf['assistant']),
 					$wgTitle, $wgOut->parserOptions(), true);
 				$this->conf['assistant_content'] = $parserOutput->getText();

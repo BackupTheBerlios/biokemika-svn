@@ -84,6 +84,7 @@
 	-moz-border-radius-bottomright:20px;
 	-moz-border-radius-topleft:20px;
 	-moz-border-radius-topright:20px;
+	border-radius: 20px;
 	background-color:white;
 	border:10px solid #CCCCCC;
 	margin:5px;
@@ -105,6 +106,13 @@
 	z-index: 6;
 }
 
+.ms-sprechblase-links {
+	left: -70px;
+	position: absolute;
+	top: -27px;
+	z-index: 6;
+}
+
 
 /************** PROXY DATABASE DRIVER *******************/
 
@@ -121,7 +129,7 @@
 
 .ms-right {
 	float: right;
-	width: 20%;
+	width: 17%;
 }
 
 .ms-sitenotice-post {
@@ -175,6 +183,7 @@
 	padding: 8px;
 	margin: 5px;
 	-moz-border-radius: 20px;
+	border-radius: 20px;
 	position: relative;
 	z-index: 5;
 }

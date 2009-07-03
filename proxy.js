@@ -18,15 +18,15 @@ function msUpdateProxyPage( o ){
 		document.getElementById('ms-assistant-msg').innerHTML = o.assistant_text_content;
 
 	if(o.assistant_content && o.assistant_content != empty)
-		document.getElementById('ms-assistant').innerHTML = o.assistant;
+		document.getElementById('ms-assistant').innerHTML = o.assistant_content;
 
 	if(o.height) {
 		// we've got the height attribute. That's interesting.
 		document.getElementById('ms-proxy-frame').style.height = o.height+"px";
 	}
 
-	if(o.deproxified_url) {
-		//document.getElementById('ms-deproxify-link').
+	if(o.deproxified_url && o.deproxified_url != empty) {
+		document.getElementById('ms-deprofixy-link').href = o.deproxified_url;
 	}
 
 	// TODO: The Link attribute.
