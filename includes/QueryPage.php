@@ -1,4 +1,8 @@
 <?php
+// This is one file of the old Metasearch system (nowadays QueryDatabase).
+// It's not as well integrated in the new system as the ProxyDatabase.
+// So: If you want to use the QueryDatabase, you should seriously
+// revise this file.
 /**
  * MediaWiki MetaSearch Extension
  * class MsQueryPage

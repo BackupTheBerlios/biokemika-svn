@@ -135,7 +135,7 @@ WIKI;
 		$this->list_of_msgs = array_merge($this->list_of_msgs, $leaf->get_messages());
 		$this->list_of_dbs = array_merge($this->list_of_dbs, $leaf->get_databases());
 
-		foreach($leaf->get_sub_categories(true) as $subcat) {
+		foreach($leaf->get_sub_categories(MsCategory::AS_OBJECTS) as $subcat) {
 			$r .= $this->category_tree($subcat, $level+1);
 		}
 		return $r;

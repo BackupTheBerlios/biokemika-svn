@@ -417,6 +417,10 @@ class MsMsgConfiguration {
 		$this->conf[$conf_key] = $value;
 	}
 
+	/// Use with care!
+	public function set_multi($conf_key) {
+	}
+
 	/// set a default value if conf_key was not set. Will return
 	/// if it was set before we set the default value
 	public function set_default($conf_key, $default_value) {

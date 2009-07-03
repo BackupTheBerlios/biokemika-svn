@@ -40,11 +40,6 @@ error_reporting(E_ALL);
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * The CategoryFactory is a bit quick & dirty like, since it also manages
- * some "almost global" functions on Categories, like category tree and
- * category stack handling.
- **/
 class MsCategoryFactory {
 	/**
 	 * Checks whether a category with this name exists, that is, if it
@@ -250,8 +245,9 @@ class MsCategory extends MsMsgConfiguration {
 	public $subs; # sub category object array
 
 	/// For usage with get_databases, get_sub_categories
-	const AS_OBJECTS = true;
-	const AS_STRINGS = false;
+	const AS_OBJECTS = -1;
+	const AS_STRINGS = -2;
+	const AS_INFO_ARRAY = -3;
 
 	// if name == false => ROOT category.
 	public function __construct($id) {
@@ -270,17 +266,56 @@ class MsCategory extends MsMsgConfiguration {
 
 	// get the identifiers of the named databases OR
 	// get the OBJECTS.
-	public function get_databases($as_objects=self::AS_STRINGS) {
-		$name_array = $this->get_array($this->has_set('db')?'db':'dbs');
-		if($as_objects == self::AS_STRINGS)
-			return $name_array;
-		else {
-			$object_array = array();
-			foreach($name_array as $name) {
-				$object_array[] = new MsDatabase($name);
+	/// @returns depending on $output_type. AS_INFO_ARRAY *will* contain sub 'name' entries.
+	public function get_databases($output_type=self::AS_STRINGS) {
+		$name_array_from_conf = $this->get_array($this->has_set('db')?'db':'dbs');
+		$ret_array = array();
+		foreach($name_array_from_conf as $db_entry) {
+			if(is_array($db_entry)) {
+				// we have the mutli scheme:
+				// db*:
+				// * name: thisistherelevantthing
+				// * other info: blabla
+				if(!isset($db_entry['id'])) {
+					// name attribute missing! This is bad...
+					// perhaps we should throw an exception.
+					continue;
+				}
+
+				if($output_type == self::AS_INFO_ARRAY) {
+					// well... how nice, that's exactly what we want ;-)
+					$ret_array[] = $db_entry;
+					continue;
+				} else {
+					$db_entry = $db_entry['id'];
+					// important: go on (no continue).
+				}
+			} // if is_array $db_entry
+
+			if(!is_string($db_entry)) {
+				// this is somewhat strange, since we need strings.
+				throw new MsException("MsCategory::get_databases: Really weird db entry in name_array ($name_array): $db_entry");
 			}
-			return $object_array;
-		}
+
+			switch($output_type) {
+				case self::AS_INFO_ARRAY:
+					// hm... we want an info array, so create one:
+					$ret_array[] = array('id' => $db_entry);
+					break;
+				case self::AS_STRINGS:
+					// we already have what we want
+					$ret_array[] = $db_entry;
+					break;
+				case self::AS_OBJECTS:
+					$ret_array[] = new MsDatabase($db_entry);
+					break;
+				default:
+					throw new MsException("Illegal output type: $output_type");
+			}
+		} // foreach databases
+
+		// should be considered: Caching.
+		return $ret_array;
 	}
 
 	/// Eigentlich nur fuer Testzwecke: die erste DB kriegen.
@@ -295,13 +330,14 @@ class MsCategory extends MsMsgConfiguration {
 		return !empty($dbs);
 	}
 
+	/// @param $as_objects one of AS_STRINGS or AS_OBJECTS.
 	public function get_sub_categories($as_objects=self::AS_STRINGS) {
 		if($as_objects == self::AS_STRINGS)
 			return $this->get_array('sub');
 		else if(!isset($this->subs)) {
 			// create subs
 			$this->subs = array();
-			foreach($this->get_sub_categories(false) as $cat_id) {
+			foreach($this->get_sub_categories(self::AS_STRINGS) as $cat_id) {
 				$this->subs[] = new MsCategory($cat_id);
 			}
 		}

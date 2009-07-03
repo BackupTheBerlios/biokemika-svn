@@ -41,6 +41,23 @@ class MsChooserPage extends MsPage {
 			$wgOut->add("Stack: {$this->cat_stack}.<br>Your params are bad: $e");
 		}
 
+		$chosen_db = $wgRequest->getText('ms-db', false);
+		if($chosen_db) {
+			// there's an "ms-db" argument present. So redirect directly
+			// to that db.
+			$db = new MsDatabase($chosen_db);
+
+			$subtitle = $db->is_driver_type('proxydriver') ? 'proxy' : 'query';
+			$wgOut->redirect(
+				$this->special_page->get_sub_title($subtitle)->getLocalUrl(
+					$this->cat_stack->build_query('ms-cat')
+					.'&'.
+					$db->build_query('ms-db')
+				)
+			);
+			return;
+		}
+
 		if($this->cat_stack->get_top()->has_sub_categories()) {
 			// display category chooser
 			$this->display_cat_chooser();
@@ -63,14 +80,16 @@ class MsChooserPage extends MsPage {
 				} else {
 					// Since we cannot merge different databases on
 					// one page, display a database chooser.
-					$this->display_db_chooser();
+					$template = new MsChooserTemplate();
+					$template->setRef('dbs', $dbs);
+					$this->display_cat_chooser($template);
 				}
 			} else {
 				// Only one database in this cat.
 				// Relaxed situation :-)
 				$db = $dbs[0];
+				$this->redirect_to_db($db);
 
-				// Quick & Dirty, to be improved:
 				$subtitle = $db->is_driver_type('proxydriver') ? 'proxy' : 'query';
 				$this->redirect( $subtitle );
 			}
@@ -87,11 +106,13 @@ class MsChooserPage extends MsPage {
 		);
 	}
 
-	/// only to be called from execute()
-	private function display_cat_chooser() {
+	/// only to be called from execute()...
+	/// @param $template If you've prepared a template, you can give it to me ;-)
+	private function display_cat_chooser($template=Null) {
 		global $wgOut;
 
-		$template = new MsChooserTemplate();
+		if(!$template)
+			$template = new MsChooserTemplate();
 
 		$template->setRef('view', $this); // for callbacks...
 		$template->setRef('title', $this->getTitle() );
@@ -100,26 +121,9 @@ class MsChooserPage extends MsPage {
 		$wgOut->addTemplate($template);
 	}
 
-	private function display_db_chooser() {
-		global $wgOut;
-
-		// ...
-		#$wgOut->addHTML('Display some kind of DB chooser.');
-		throw new MsException("Diese Kategorie stellt mehrere Datenbanken
-			zur Verfuegung. Dieses Feature wurde leider noch nicht
-			komplett fertiggestellt.");
-
-	}
-
-	function link_title_for(MsCategory $cat) {
-		// should be implemented with some wfMsg...
-		return "Select $cat...";
-	}
-
+	// no more needed.
 	function print_end_page() {
 		global $wgUser, $wgOut;
-		# display an infobox for every user
-		$wgOut->addWikiText( wfMsg('Ms-end-box') );
 		# display a neat infobox thingy for registered users
 		if(! $wgUser->isAnon() ) {
 			$wgOut->addWikiText( wfMsgData('Ms-user-box', $this->search_mask->get_top_cat()->conf) );

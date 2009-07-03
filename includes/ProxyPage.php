@@ -10,8 +10,6 @@ class MsProxyTemplate extends MsQuickTemplate {
 		<?php echo  wfMsg('ms-proxypage-top', $this->get('catchooser_link'),
 			$this->get('leave_biokemika_link')
 		); ?>
-		<!-- <a href="#">&lt; Eine andere Kategorie wählen</a>
-		| <a href="#">BioKemika verlassen...</a>-->
 	</div>
 		<div class="ms-assistant-text" id="ms-assistant-msg">
 			<?php
