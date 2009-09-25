@@ -76,11 +76,11 @@ $wgSpecialPages['Metasearch'] = 'MsSpecialPage';
 
 $wgAutoloadClasses = $wgAutoloadClasses + array(
 	'MsDatabase' => "$dir/includes/Database.php",
-	'MsDatabaseFactory' => "$dir/includes/Database.php",
-	'MsQuery' => "$dir/includes/Database.php",
+#	'MsDatabaseFactory' => "$dir/includes/Database.php",
+#	'MsQuery' => "$dir/includes/Database.php",
 	'MsResult' => "$dir/includes/Result.php",
 	'MsSparseResult' => "$dir/includes/Result.php",
-	'MsRecord' => "$dir/includes/Database.php",
+#	'MsRecord' => "$dir/includes/Database.php",
 
 	'MsCategory' => "$dir/includes/Category.php",
 	'MsCategoryFactory' => "$dir/includes/Category.php",

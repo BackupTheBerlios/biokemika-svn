@@ -2,9 +2,6 @@
 
 error_reporting(E_ALL);
 
-if(!class_exists('MsDatabase')) {
-	#return; # was soll das auch?
-
 class MsDatabase extends MsMsgConfiguration {
 	public $id;
 	public $driver = Null;
@@ -153,5 +150,3 @@ abstract class MsDriver {
 		return "MediaWiki MetaSearch Driver [".$this->id."]";
 	}
 }
-
-} // if !defined class MsDatabase
