@@ -1,0 +1,12 @@
+#metasearch-sidebar {
+	background-color: white;
+}
+
+#metasearch-statusbar-button[sidebar-visible="true"] {
+	list-style-image: url("chrome://metasearch/skin/bc-enabled.png");
+	/*-moz-image-region: rect(0px 24px 24px 0px);*/ /* should be enabled later for performance*/
+}
+
+#metasearch-statusbar-button[sidebar-visible="false"] {
+	list-style-image: url("chrome://metasearch/skin/bc-disabled.png");
+}

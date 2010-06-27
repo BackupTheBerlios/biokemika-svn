@@ -1,0 +1,6 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/BioKemika_Logo_75px.png" border="0" height="75" width="75" style="float:right;margin:0px 10px 0px 10px">
+
+'''Du bist auf der Datenbanksuche angekommen. Super! Hier hilft mein Kollege Sherlock BC weiter...'''
+
+<div id="metasearch-hide-sidebar">''Wenn du dies hier noch lesen kannst, läuft was schief!''</div>

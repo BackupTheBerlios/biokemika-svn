@@ -1,0 +1,14 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_NCBI.png" border="0" height="100" width="85" style="float:right;margin:0px 10px 0px 10px">
+
+Du befindest dich auf der Startseite der MMDB, die Teil des NCBI Entrez Retrieval Systems ist. 
+
+Die MMDB enthält dieselben 3D-Strukturen wie auch die [[Portal:Bioinformatik/Datenbanken#Protein-Strukturen|wwPDB]]. Der Vorteil in der MMDB zu suchen ist, dass zusätzliche Informationen in anderen NCBI-Datenbanken über Querverlinkungen leicht erreichbar sind. NCBI ist eine Einheit, sodass unterschiedliche Datenbanken in diesem Webportal ähnlich funktionieren und man so leicht zwischen Protein-Strukturen, Literatur, gebundenen Liganden, Quell-Organismen und entsprechenden Gen-Sequenzen hin und her springen kann ohne den Überblick zu verlieren (sofern man einmal eingearbeitet ist xD).
+
+Verwende nun das Suchfeld oben, um eine Suche zu starten. Es ist ausreichend die Protein-Bezeichnung (steht im Titel der PDB-Datei) und den Quellorganismus als Suchbegriffe zu verwenden. Schreibe z.B.
+
+<nowiki>Hexokinase[Title] AND "Homo Sapiens"[Organism]</nowiki>
+
+Du kannst auch die '''Anzahl der Polypeptide definieren''', falls du z.B. einen oligomeren Zustand suchst. Stelle dazu zum Beispiel folgende Suchanfrage, wenn du Strukturen anzeigen möchtest, die mindestens als Trimer vorliegen (999 repräsentiert hier ein unendlich hohes oberes Limit). Dieselbe Syntax funktioniert mit DNA, RNA und Ligand!
+
+<nowiki>3:999[ProteinMoleculeCount]</nowiki>

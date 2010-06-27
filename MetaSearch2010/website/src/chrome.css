@@ -1,0 +1,142 @@
+/* For the real MetaSearch sidebar page
+   or an embedded area (<div class="chrome">) */
+
+.hidden { display: none; }
+.bold { font-weight: bold; }
+
+/* body */ .chrome  {
+	margin: 10px;
+	font: 12px Arial;
+	background-color: white;
+	background-image: url("protein-background.jpg");
+	background-repeat: no-repeat;
+	background-position: bottom right;
+	min-height: 680px; /* fuer hintergrund */
+}
+
+.chrome #msg {
+	-moz-border-radius: 20px;
+	-webkit-border-radius: 20px;
+	border: 10px solid #CCC;
+	padding: 8px;
+	background-color: white;
+}
+
+.chrome #msg>p {
+	margin-top: 0; /* erster absatz */
+}
+
+.chrome #imgwrp {
+	position: relative;
+	height: 380px;
+}
+
+.chrome #badge {
+	position: absolute;
+	bottom: 288px;
+	left: 118px;
+}
+.chrome #bc {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+.chrome p {
+	
+}
+
+.chrome .red {
+	color: #336699;
+}
+
+.chrome .input, pre {
+	margin: .5em;
+	font-family: monospace;
+}
+
+.chrome form {
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+
+.chrome #buttons {
+	position: absolute;
+	right: 13px;
+	top: 7px;
+	text-align: right;
+	z-index: 10;
+}
+
+.chrome textarea {
+	width: 100%;
+	height: 15em;
+}
+
+.chrome .good {
+	border:solid 1px #1a251b;
+	background:#cee6c3;
+	color:#1a251b;
+	padding:4px;
+	margin: 3px;
+}
+
+.chrome .warning {
+	border:solid 1px #dfdfde;
+	background:#fcf9ce;
+	color:#43433c;
+	padding:4px;
+	margin: 3px;
+}
+
+.chrome .small-buttons {
+	text-align: right;
+	margin-top: 5px;
+}
+
+.chrome .small-buttons input {
+	float: right;
+	clear: right;
+	font-size: 80%;
+}
+
+.chrome a:hover {
+	color: red;
+}
+
+.chrome .navigation-bar {
+	position: fixed;
+	bottom: 10px;
+	left: 10px;
+}
+
+.chrome pre.debug-output {
+	margin: 15px -10px -10px -10px; /* Seitenraender wegschnipseln */
+	padding: 20px;
+	border-top: 1px solid red;
+	background-color: #eee;
+	
+	position: relative; /* Um ueber Buttons unten zu erscheinen */
+	z-index: 20;
+}
+
+/* Design: Icons auf Buttons (uebler XUL-Hack) */
+input.button, button {
+	-moz-binding:url("chrome://global/content/bindings/button.xml#button");
+	font: message-box;
+	padding: 0;
+}
+
+.edit-button          { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/comment_edit.png"); }
+.continue-button  { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/keyboard.png"); }
+.cancel-button      { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/cancel.png"); }
+.preview-button    { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/user_comment.png"); }
+.frontend-button  { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/application_double.png"); }
+.save-button          { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/tick.png"); }
+	/* alternativ: http://dev.technikum29.de/src/img/silk.iconset/disk.png */
+.report-button      { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/thumb_down.png"); }
+	/* alternativ: http://dev.technikum29.de/src/img/silk.iconset/bug.png */
+	/*   auﬂerdem: http://dev.technikum29.de/src/img/silk.iconset/thumb_up.png */
+.homepage-button   { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/comments.png"); }
+.add-comment-button { list-style-image: url("http://dev.technikum29.de/src/img/silk.iconset/comment_add.png"); }

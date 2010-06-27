@@ -1,0 +1,8 @@
+<!ENTITY metasearch.label "Your localized menuitem">
+<!ENTITY metasearchContext.label "Your Menuitem">
+<!ENTITY metasearchContext.accesskey "Y">
+<!ENTITY metasearchToolbarButton.label "Your Toolbar Button">
+<!ENTITY metasearchToolbarButton.tooltip "This is your toolbar button!">
+<!ENTITY metasearchSidebar.label "Assistent Mr. BC">
+<!ENTITY metasearchToolbar.name  "example">
+<!ENTITY metasearchToolbar.label "This is an example toolbar. You can hide it under View &gt; toolbars &gt; &metasearchToolbar.name;">

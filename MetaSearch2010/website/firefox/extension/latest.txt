@@ -1,0 +1,3 @@
+0.3
+metasearch-0.3.xpi
+vom 16.06.2010

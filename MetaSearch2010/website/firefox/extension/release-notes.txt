@@ -1,0 +1,42 @@
+﻿Version 0.03 (Fr, 21.05.2010)
+============
+
+* Anpassungen fuer Prototyp-Server auf svenk.homeip.net
+
+
+Version 0.02 (DO, 20.05.2010)
+============
+
+* BC-Icon als Fenstericon
+* Kleine Korrekturen fuer Screenshot-Veroeffentlichung
+
+Version 0.01 (So, 25.04.2010)
+============
+
+Die allererste Version ist dynamisch gelinkt und steht ergo nur mit
+einer Fülle von DLLs in einem ZIP bereit. Wenn das linken statisch
+geschieht, dann kann stattdessen eine einfache .exe runtergeladen
+werden.
+
+Vorgehen:
+
+1. Programm runterladen und ausführen
+2. Der Browser startet automatisch bei <a href="http://biokemika.de/metasearch2010/">http://biokemika.de/metasearch2010/</a>
+   und dort steht dann auch alles weitere :-)
+
+Inhaltliche Anmerkungen:
+
+* Erste Version basiert auf QtWebKit-Browser (Einfache Adaption wie
+  in den Qt-Demos), in einem Seitendock wird ein weiteres WebKit-Widget
+  angezeigt, wo Mr. BC angezeigt wird.
+* Durch Signals/Slots werden Seitenänderungen aufgefangen, worauf im
+  BC-Widget recht trivial per GET-Parameter an ein PHP-Script
+  auf biokemika.de dann der richtige neue BC geladen wird.
+* Wenn man ein Signal nutzt, das erst nach dem vollständigen Seitenladen
+  kommt, kann man auch den Seiteninhalt mit ausparsen/schicken/etc.,
+  was ganz nett ist, um das Viralzone-Beispiel zu implementieren und
+  damit den vollständigen Funktionsumfang der alten MetaSearch
+  abzudecken - in einem Abwasch ;-)
+  
+Arbeitsumfang: 4h inkl. Aufsetzen der Umgebung (Server, Entwicklungsumgebung,
+Static-Kompilierung von Qt)

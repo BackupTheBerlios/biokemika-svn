@@ -1,0 +1,6 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/BioKemika_Logo_75px.png" border="0" height="75" width="75" style="float:right;margin:0px 10px 0px 10px">
+
+Dieses Portal innerhalb BioKemika liefert dir knappe Informationen über Zusammenhänge verschiedener biologischer Datenbanken.
+
+Es ist also ganz hilfreich dich hier ein bisschen einzulesen, wenn du nicht ganz sicher bist für welche Datenbank du dich in der letzten Ebene der [[Portal:Datenbanksuche|Kategorienauswahl]] entscheiden sollst.

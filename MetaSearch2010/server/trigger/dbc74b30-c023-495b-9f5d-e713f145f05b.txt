@@ -1,0 +1,6 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_EBI_2.jpg" border="0" height="75" width="75" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist die EC-PDB auf EBI, einer Datenbank für 3D-Strukturen von Enzymen. Im Vergleich zur PDBsum auf EBI werden hier auf den Übersichtsseiten der gefundenen 3D-Strukturen lediglich Enzym-bezogene Informationen wie Enzymreaktion angezeigt. Die Sortierung erfolgt anhand der EC-Nummer, sodass einfaches Browsing (wenn Enzym-Nummer bekannt) statt komplizierter Suchanfrage möglich ist!
+
+Kennst du die EC-Nummer nicht, aber die Enzym-Funktion sehr wohl, so kannst du erstere in der IUBMB nachschlagen.

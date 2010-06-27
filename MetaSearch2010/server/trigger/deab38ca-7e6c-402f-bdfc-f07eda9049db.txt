@@ -1,0 +1,13 @@
+<img alt="" src="http://biokemika.uni-frankfurt.de/w/images/Logo_RCSB.gif" border="0" height="60" width="150" style="float:right;margin:0px 10px 0px 10px">
+
+'''Super, du hast eine erfolgreiche Suche bei der RCSB durchgeführt'''
+
+Dies ist die '''Ergebnis-Übersicht''' der RCSB. Die wichtigsten Funktionen in der Übersicht:
+
+Beachte die Registerkarten oben. Die Karten '''''GO Hits''''', '''''SCOP Hits''''' und '''''CATH Hits''''' zeigen die Ergebnisse in einer Baumstruktur und zar sortiert nach den entsprechenden Klassifizierungen. GO sortiert nach Funktion des Proteins, SCOP und CATH nach strukturellen Eigenschaften.
+
+Willst du einfach '''schnell eine Struktur herunterladen''' nutze das erste Icon unter der Check-Box eines jeden Ergebnis-Eintrags.
+
+Andernfalls kannst du auch auf den Titel des Ergebnis-Eintrags klicken, um '''ausführliche Informationen über die Struktur''' zu erhalten.
+
+{{BC|superhappy}}

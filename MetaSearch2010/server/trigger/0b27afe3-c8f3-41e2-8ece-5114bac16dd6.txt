@@ -1,0 +1,11 @@
+<img alt="" src="http://biokemika.uni-frankfurt.de/w/images/Logo_RCSB.gif" border="0" height="60" width="150" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist die '''Advanced Search''' Seite der RCSB. Hier eine Kurze Anleitung zur Suche:
+
+(1) Wähle im Drop-Down Menü '''''Choose a Query Type''''' ein Feld wie z.B. ''Macromolecule Name'' und gebe dann die Bezeichnung des Moleküls ein, für das du eine Struktur suchst.
+
+(2) Klicke auf den Button '''''Result Count''''', um die Anzahl der Suchergebnisse zu berechnen. Sind sie zu groß, solltest du die Suchanfrage weiter einschränken. Sind sie im niedrigen zweistelligen Bereich, kannst du auf den Button '''''Submit Query''''' ganz unten klicken, um diese Suchergebnisse anzuzeigen.
+
+(3) Falls zu viele Suchergebnisse resultieren, klicke auf die blaue Leiste '''''Add Search Criteria''''', um ein weiteres Suchkriterium zur Suchanfrage hinzuzufügen. Dies kann z.B. der Quellorganismus oder die Quartiärstruktur sein.
+
+'''Achtung:''' Der Button Result Count zählt nur die Ergebnisse der einzelnen Suchkriterien. Die Anzahl der Schnittmenge kann man nur einschätzen und wird erst über die Anzeige aller Suchergebnisse über den Button '''''Submit Query''''' ersichtlich.

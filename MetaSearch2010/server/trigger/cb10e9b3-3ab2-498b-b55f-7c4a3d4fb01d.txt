@@ -1,0 +1,16 @@
+<img alt="" src="
+http://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Help-browser.svg/200px-Help-browser.svg.png" border="0" height="100" width="100" style="float:right;margin:0px 10px 0px 10px">
+
+<div class="notext">
+'''Leider kann ich dir zu dieser Webseite keine Hilfestellung geben'''. Dies kann prinzipiell zwei Gründe haben:
+:(1) Dies hier ist keine Webseite einer biologischen Datenbank.
+:(2) Niemand hat zu dieser biologischen Datenbank einen Kommentar verfasst. 
+
+Hilfe gibts vielleicht in BioKemika im [[Portal:Bioinformatik/Datenbanken|Datenbanken-Portal]]. Falls nicht nutze den interaktiven Service ''[[Portal:FAQ|Frag Dr. BC]]''!
+
+:'''Kennst du dich mit dieser Website aus?''' Dann hilf mit und schreib an diese Stelle einen Text! Es ist ganz einfach!
+
+<input type="button" onclick="window.open('?edit=new','edit');" class="bold button add-comment-button" value="Text schreiben">
+</div>
+
+{{BC|nothingtosay}}

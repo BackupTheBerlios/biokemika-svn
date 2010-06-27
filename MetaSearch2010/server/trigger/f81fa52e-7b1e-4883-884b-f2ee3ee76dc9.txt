@@ -1,0 +1,10 @@
+'''Dicker''' Text neben ''kursivem'' Text mit [[BioKemika:Bla|Link zur BioKemika]], wie [[NCBI]] auch. Und [http://www.google.de ein rausgehender Link], uvm.
+
+Super, gell? Ja, ich bin auch
+* diesen tollen Syntax. Total Bahnbrechend!
+* blablabla
+* blablabla
+
+Und dazu muss noch irgendwie ein BC definiert werden. Hmmm. Keine Ahnnung, muss man nochmal überlegen und so. Blablabla
+
+{{Mr. BC|superhappy}}

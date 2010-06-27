@@ -1,0 +1,4 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_EBI_2.jpg" border="0" height="75" width="75" style="float:right;margin:0px 10px 0px 10px">
+
+Willkommen zur PDBsum Startseite auf EBI, einer Datenbank für Proteinstrukturen.

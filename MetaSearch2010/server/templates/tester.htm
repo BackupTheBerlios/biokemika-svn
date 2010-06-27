@@ -1,0 +1,67 @@
+[% title = "Trigger-Tester" %]
+[% INCLUDE header.htm %]
+
+<div class="links">
+
+<h1>Trigger-Test-Suite</h1>
+
+<p>Auf dieser Seite können Trigger anhand von Eingabedaten ganz realistisch
+getestet werden. Diese Eingabedaten kriegt man etwa aus dem Quelltext der Seite
+(Copy & Paste) bzw. aus Adressleiste, etc.</p>
+
+<p>Zusätzlich können Debugausgaben angeschaltet werden. Auf diese Weise kann man zuschauen,
+wie der Trigger-Compiler/Interpreter arbeitet und damit Fehler in seiner
+Trigger-Logik nachvollziehen. Vorsicht: Debug-Ausgaben auf *allen* Triggern erzeugen
+sehr viele Ausgaben.</p>
+
+<p>Siehe auch <a href="release-notes.htm#debug">Erklärungen der Debugausgaben</a></p>
+
+<form method="post" target="rechts">
+<input type="hidden" name="query" value="1">
+
+<fieldset>
+   <legend>Eingabedaten</legend>
+
+   <p>URL (Adresse der Seite):
+   <br><input type="text" name="url" style="width:100%;">
+
+   <p>Content (Quelltext der Seite):
+   <br><textarea name="content" style="width: 100%; height: 15em"></textarea>
+</fieldset>
+
+<fieldset>
+   <legend>Zu testende Trigger</legend>
+
+   <p>
+   <input type="checkbox" name="debug" id="debug" [% IF id %]checked="checked"[% END %]>
+   <label for="debug"> Debug-Ausgaben erzeugen (empfehlenswert)</label>
+
+   <p>Trigger-IDs: In diesem Eingabefeld können beliebig viele Trigger-IDs
+      genannt werden (pro Zeile eine ID), die dann in dieser Reihenfolge getestet
+	  werden. Wenn leer, werden alle Trigger ausprobiert. Gebe unsinnigen Inhalt (etwa <i>---</i>)
+	  ein, um gar keinen Trigger zu testen (etwa, um nur deinen eigenen Trigger zu testen, siehe unten)
+   <br>
+   <textarea name="test" style="width:16em; height: 8em; font:monotype" value="[% id %]"></textarea>
+   
+   <p>Zusätzlich kann in diesem Eingabefeld ein eigener Trigger live ausprobiert werden.
+      Damit können Formulierungen ganz ohne Speicherung ausprobiert werden. Dieser Trigger
+	  kriegt eine zufällige temporäre ID und wird als letzter Trigger (nach obiger Liste)
+	  getestet.
+	<br>
+   <textarea name="temptrigger" style="width: 100%; height: 15em;"></textarea>
+</fieldset>
+
+<p>
+<input type="submit" value="Ausprobieren" class="bold">
+<input type="reset" value="Leeren" style="margin-left: 2em;">
+</form>
+
+
+</div>
+<div class="rechts">
+
+<h2>Ausgabe</h2>
+<iframe name="rechts" style="width:100%; height: 55em"
+></iframe>
+
+</div>

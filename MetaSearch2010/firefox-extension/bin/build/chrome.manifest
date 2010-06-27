@@ -1,0 +1,6 @@
+content   metasearch                 jar:chrome/metasearch.jar!/content/
+skin      metasearch   classic/1.0   jar:chrome/metasearch.jar!/skin/
+locale    metasearch   en-US         jar:chrome/metasearch.jar!/locale/en-US/
+
+
+overlay   chrome://browser/content/browser.xul   chrome://metasearch/content/browser-overlay.xul

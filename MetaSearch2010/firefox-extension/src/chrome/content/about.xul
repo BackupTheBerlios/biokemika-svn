@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://metasearch/locale/about.dtd">
+
+<dialog title="&about; MetaSearch" orient="vertical" autostretch="always"
+  onload="sizeToContent(); version();" buttons="accept" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="metasearch.js"/>
+  <script>
+    function version() { document.getElementById('version').setAttribute("value", "&version; "+MetaSearch.version); }
+  </script>
+  <groupbox align="center" orient="horizontal">
+    <vbox>
+      <text value="MetaSearch" style="font-weight: bold; font-size: x-large;"/>
+      <text value="&version; " id="version" />
+      <separator class="thin"/>
+      <text value="&createdBy;" style="font-weight: bold;"/>
+      <text value="Sven Köppel"/>
+      <separator class="thin"/>
+    </vbox>
+  </groupbox>
+</dialog>

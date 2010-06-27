@@ -1,0 +1,13 @@
+<img alt="" src="http://biokemika.uni-frankfurt.de/w/images/Logo_RCSB.gif" border="0" height="60" width="150" style="float:right;margin:0px 10px 0px 10px">
+
+Detail-Ansicht eines Protein-Eintrags auf RCSB. Du befindest dich auf der Registerkarte '''Summary'''.
+
+'''Ich will nur schnell die Struktur im PDB-Format laden!'''
+: Dann klicke einfach rechts oben neben dem vierstelligen PDB-ID-Code auf ''Download Files'' und wähle ''PDB file (Text)''
+
+'''Diese Seite enthält Detail-Informationen zur gefundenen Protein-Struktur.'''
+* '''Primary Citation''': Link zum Artikel auf PubMed, mit dem die Struktur publiziert wurde. Hier gibt es vermutlich zahlreiche gute Abbildungen der Struktur mit Beschreibungen zu den aus der Struktur gewonnenen Erkenntnissen.
+* '''Molecular Description''': Hier stehen z.B. die Anzahl der Polypeptidketten in der Struktur sowie das Molekulargewicht.
+* '''Querverweise''': Es sind Verlinkungen zu den evtl. gebundenen Liganden, zum Quellorganismus und zu Informationen zum Molekül selbst (z.B. Klassifizierung nach EC-Nummern für Enzyme oder Zuordnung zu einer Protein-Familie) vorhanden. Die Links führen zu anderen externen biologischen Datenbanken.
+
+'''''Beachte auch die zahlreichen weiteren Registerkarten oben, die weitere spezifische Informationen zu dem Ergebnis-Eintrag enthalten.'''''

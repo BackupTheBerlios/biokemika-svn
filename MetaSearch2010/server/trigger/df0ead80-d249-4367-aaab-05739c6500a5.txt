@@ -1,0 +1,10 @@
+<img alt="" src="http://biokemika.uni-frankfurt.de/w/images/Logo_RCSB.gif" border="0" height="60" width="150" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist das Java Applet von '''JMol''' auf RCSB.
+
+Du hast nun zahlreiche Möglichkeiten dir die Struktur genauer anzusehen:
+* Mittlere Maustaste: Zoom
+* Linke Maustaste: Rotation
+* Rechte Maustaste: Kontextmenü
+
+Wir empfehlen jedoch, wenn du hübschere Ansichten oder genauere Analysen machen willst, die Struktur herunterzuladen und in PyMol zu bearbeiten und zu betrachten. Soll es schnell gehen, kannst du auch hier direkt ein Foto machen (Rechtsklick/Speichern/JPG Grafik).

@@ -1,0 +1,28 @@
+[% title = "MetaSearch-Kommentar lÃ¶schen ($id)" %]
+[% INCLUDE header.htm %]
+
+<div class="links">
+
+<div class="uuid" title="Dies ist eine welweit eindeutige Kennung des Triggers (ID)">[%trigger.id%]</div>
+[% IF really %]
+	<h1>Kommentar gelöscht</h1>
+	<p class="good">Der Trigger wurde in den Papierkorb verschoben.</p>
+	<p>Zurück zur <a href="?">Trigger-Übersicht</a>.</p>
+[% ELSE %]
+	<h1>Kommentar wirklich löschen?</h1>
+	<p class="warning">Willst du wirklich den rechts angezeigten Trigger löschen?</p>
+	<form method="get">
+	  <input type="hidden" name="delete" value="[% trigger.id %]">
+	  <input type="submit" name="really" value="Trigger löschen">
+	</form>
+	<p>Ansonsten kehre zurück zur <a href="?">Trigger-Übersicht</a>.</p>
+</div>
+<div class="rechts">
+
+<h2>Der zu löschende Kommentar</h2>
+[% chrome_embedded = 1 %]
+[% INCLUDE "chrome.htm" %]
+
+</div>
+[% END %]
+

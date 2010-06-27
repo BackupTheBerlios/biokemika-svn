@@ -1,0 +1,15 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_pubmed.png" border="0" height="55" width="130" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist die Startseite von PubMed. Der einfachste Weg eine Suche zu starten geht über den Link '''Advanced Search'''.
+
+Um eine '''kompliziertere Suchanfrage''' zu stellen gibt es einige wichtige Links auf dieser Seite. Neben dem Drop-Down Menü, oberhalb des Sucheingabefeldes findest du folgende Links:
+
+:'''Limits:''' Ermöglicht die Einschränkung der Suche anhand formaler Kriterien wie z.B. "freie Reviews", "deutschsprachige Literatur" etc.
+:'''Advanced Search:''' Ermöglicht einzelne Suchbegriffe bestimmten Feldern zuzuordnen (z.B. ''2009'' <-> ''Publikationsdatum'') und die Suchbegriffe miteinander über Operatoren (AND, OR, NOT) zu verknüpfen. Dies geht auch manuell, wobei man die Feldbezeichnungen dann auswendig wissen muss (z.B. ''PDAT'' für ''Publikationsdatum'').
+
+Außerdem findest du in der Link-Tabelle rechts unter ''More Ressources'' folgende Verweise:
+
+:'''MeSH Database:''' enthält eine Liste medizinischer Fachtermini, von denen mehrere jedem Paper zugeordnet sind. Über eine Kombination dieser Fachtermini lassen sich Themen-spezifisch Paper und Reviews in PubMed suchen.
+:'''Journals Database:''' Wenn du eine Journal-Bezeichnung nicht kennst, aber nur Artikel aus ''guten Journals'' finden möchtest, kannst du hier die die richtigen Journal-Bezeichnungen für eine Suche in PubMed finden.
+:'''LinkOut:''' LinkOut-Provider vermitteln zwischen den gefundenen Zitationen und dem Volltext in anderen Datenbanken. PubMed ist eine Suchmaschine und findet lediglich Zitationen. Der Volltext ist über Verlinkungen in anderen Datenbanken zugänglich. Hier findest du eine Übersicht welche Journals von welchen LinkOut-Providern verlinkt werden.

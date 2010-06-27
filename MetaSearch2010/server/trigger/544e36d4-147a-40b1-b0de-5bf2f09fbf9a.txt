@@ -1,0 +1,4 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_uniprot.gif" border="0" height="73" width="160" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist die Hauptseite der ''Universal Protein Knowledge Base'', kurz '''UniProtKB'''.

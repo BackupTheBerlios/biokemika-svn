@@ -1,0 +1,1 @@
+url == http://www.ncbi.nlm.nih.gov/sites/entrez?db=structure

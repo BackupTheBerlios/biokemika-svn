@@ -1,0 +1,44 @@
+[% title = "Trigger-Übersicht" %]
+[% INCLUDE header.htm %]
+
+<h1>Willkommen zur Trigger-Übersicht</h1>
+<p>Dies hier ist die Zentrale des vorliegenden <a href="/metasearch2010">MetaSearch2010</a>-Serverprototyps.
+Es sei auf die <a href="/metasearch2010/server/release-notes.htm">Dokumentation und Release Notes</a>
+verwiesen, insbesondere um für Ernüchterung für etwaige Erwartungshaltungen
+zu sorgen.</p>
+
+<h2>Liste der vorhandenen Kommentare</h2>
+<p>Derzeit sind <b>[% triggers.size %] Kommentare</b> (inkl. Trigger) gespeichert.
+Es folgt eine unsortierte Auflistung. Mit einem Klick auf den Titel kann der Kommentar
+sowie der zugehörige Trigger bearbeitet werden. <br>Alternativ klicke auf
+<b><a href="?edit=new">Neuen Kommentar verfassen</a></b>. Ausserdem geht es hier
+jetzt zum <b><a href="?test=test">Triggertester</a></b>
+
+<ul class="overview">
+[% FOREACH trigger IN triggers %]
+	<li>
+	<div class="entity">
+		<div class="header">
+			<h2><a href="?edit=[% trigger.id() | uri %]">Trigger [% loop.index +1 %]
+			<!--% trigger.caption() %-->
+			</a></h2>
+			<div class="nav">
+			    <a href="?chrome=[%trigger.id%]">ansehen</a> | 
+				<a href="?edit=[%trigger.id%]">bearbeiten</a> |
+				<a href="?delete=[%trigger.id%]">löschen</a>
+			</div>
+			<div class="id">[% trigger.id() %]</div>
+		</div>
+		<div class="content">
+			<div class="blend"></div><!-- design -->
+			<div class="sprechblase">
+					[% trigger.get_text_as_html() %]
+			</div>
+		</div>
+		<img src="[% trigger.get_bc_image %]" class="bc" title="Zugeordneter BC: [% trigger.bc %]">
+	</div>
+	</li>
+[% END %]
+</ul>
+
+<br clear="both"/>

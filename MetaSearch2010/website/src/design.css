@@ -1,0 +1,88 @@
+body {
+	font: 13px Arial;
+	margin: 0; padding: 2em;
+	background-color: white;
+}
+
+#header {
+	height: 190px;
+	margin: 0 -2em 3em 0;
+	background: url(header.bg.png) repeat-x;
+}
+
+#header h1 {
+	text-indent: -999em;
+	background-image: url(header.png);
+	width: 608px;
+	height: 190px;
+	margin: 0; padding: 0;
+}
+
+#main-navigation {
+	position: absolute;
+	top: 37px;
+	left: 232px;
+	font-weight: bold;
+}
+
+#main-navigation a:link, #main-navigation a:visited {
+	font-weight: normal;
+}
+
+#main-navigation a:hover {
+	background-color: yellow;
+}
+
+p, li {
+	text-align: justify;
+	line-height: 140%;
+}
+
+.links {
+	float: left;
+	width: 50%;
+}
+
+.rechts  {
+	margin-left: 50%;
+	padding-left: 4em;
+}
+
+.download {
+	padding: 1em;
+	border: 1px solid #aaa;
+	background-color: #fafafa;
+	position: relative;
+}
+
+.download h2 {
+	text-align: center;
+}
+
+a.download-button {
+	background: url("download-button.png");
+	background-repeat: no-repeat;
+	/* no-repeat scroll -2px -1px #009600 */
+	color:#F7FAF2;
+	display:block;
+	height: 72px;
+	margin:0 5px 0 2px;
+	padding:10px 52px 0 20px;
+	text-decoration:none;
+	width: 192px;
+	font-size:18px;
+	text-shadow:0 1px 1px #336633;
+}
+
+a.download-button span {
+	color:#003300;
+	display:block;
+	font-size:11px;
+	font-weight:normal;
+	padding-top:4px;
+	text-shadow:none;
+}
+
+fieldset {
+	background-color: #eee;
+}

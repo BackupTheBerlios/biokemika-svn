@@ -1,0 +1,5 @@
+<img alt="" src="http://biokemika.uni-frankfurt.de/w/images/Logo_RCSB.gif" border="0" height="60" width="150" style="float:right;margin:0px 10px 0px 10px">
+
+Dies ist die Startseite der RCSB-PDB. Für Protein-Strukturen ist diese Datenbank eine sehr gute Wahl!
+
+Um eine Suche zu starten, nutze den grünen Button '''''Advanced Search''''' rechts oben und definiere dann einzelne Felder wie ''Macromolecule Name'' oder ''Source Organism''. Es ist sehr einfach!

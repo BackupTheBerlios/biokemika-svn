@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://metasearch/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://metasearch/locale/overlay.dtd">
+<overlay id="metasearch-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <!--  eigene scripte -->
+  <script src="metasearch.js" />
+  <script src="tabcontext.js" />
+
+  <!-- lustiges Zeug, braucht man aber nicht dringend und so-->
+  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="metasearch-strings" src="chrome://metasearch/locale/overlay.properties"/>
+  </stringbundleset>
+
+  <commandset>
+    <command id="cmd_metasearch_statusbutton_click" oncommand="MetaSearch.Extension.onStatusButtonClick(event);"/>
+  </commandset>
+  
+  <!-- OVERLAY: EIGENE SIDEBAR AUF RECHTER SEITE -->
+  <hbox id="browser">
+    <splitter
+      id="metasearch-splitter"
+      collapse="after"
+      persist="hidden"/>
+	<vbox id="metasearch-sidebarbox" persist="hidden">
+	  <hbox id="metasearch-header">
+		 <label id="metasearch-title" flex="1" crop="end" value="MetaSearch Suchassistent"/>
+		 <toolbarbutton class="tabs-closebutton" tooltiptext="Sidebar schließen"
+			oncommand="MetaSearch.Extension.hideSidebar();" />
+	  </hbox>
+      <deck
+        id="metasearch-sidebar"
+        orient="vertical"
+        persist="width collapsed"
+        width="320"
+        min-width="28"
+		flex="1"
+	  />
+	</vbox>
+  </hbox>
+
+  <statusbar id="status-bar">
+    <statusbarpanel
+      id="metasearch-statusbar-button"
+      class="statusbarpanel-iconic-text"
+	  sidebar-visible="true"
+      tooltiptext="Suchassistent ein/ausblenden"
+      command="cmd_metasearch_statusbutton_click"
+	  label="Suchassistent">
+    </statusbarpanel>
+	<!--
+	  nutzte eigene Parameter in statusbarpanel:
+	  margin-visible="true"
+      margin-enabled="true"
+    -->
+  </statusbar>
+  
+</overlay>
+

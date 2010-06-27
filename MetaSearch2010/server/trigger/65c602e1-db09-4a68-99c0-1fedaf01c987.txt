@@ -1,0 +1,15 @@
+<img alt="" src="
+http://biokemika.uni-frankfurt.de/w/images/Logo_NCBI.png" border="0" height="100" width="85" style="float:right;margin:0px 10px 0px 10px">
+
+'''Entrez Gene auf NCBI''' ist eine auf Gene spezialisierte Nukleotidsequenz-Suchmaschine.
+
+Die Daten werden direkt aus den einzelnen RefSeq-Genom-EintrÃÂ¤gen entnommen, sodass die zugrunde liegende Datenbank keine Redundanz aufweist. Allerdings werden hier nicht alle Gene gefunden &ndash; Warum? [[BioKemika:Irgendwas|lese mehr...]]
+
+Die Suche funktioniert wie bei allen NCBI-Suchmaschinen &uuml;ber Felder.
+Unter dem [[Portal:Bioinformatik]] findest du [[Portal:Bioinformatik/Software|EinfÃÂÃÂÃÂÃÂ¼hrende Informationen]] zur Suche mit Entrez</a>.
+
+Um die Suche zu starten benutze das Eingabefeld mittig-oben auf der Seite. Eine Suchanfrage kÃÂÃÂÃÂÃÂ¶nnte zum Beispiel so aussehen, wenn du nach dem humanen Gen fÃÂÃÂÃÂÃÂ¼r Protein Hexokinase suchst:
+
+ <nowiki>Human[Organism] AND Hexokinase[Protein]</nowiki>
+
+Nach der Suchanfrage kann ich dir weitere Tipps zur EinschrÃÂÃÂÃÂÃÂ¤nkung der Suche geben!

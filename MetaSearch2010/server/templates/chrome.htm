@@ -1,0 +1,129 @@
+[% UNLESS chrome_embedded %]
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+       "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Mr. BC</title>
+  <link type="text/css" rel="stylesheet" href="/metasearch2010/src/chrome.css">
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.js"></script>
+  <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
+  <script type="text/javascript">
+	// quick and dirty link rewriting damit sie zumindest
+	// FUNKTIONIEREN und nicht im gleichen fenster oeffnene
+	$(function(){
+		// mal testweise:
+		/*if(!window.MetaSearch)
+			$("body").prepend("Traurig, keine MetaSearch!<br>");
+			//alert("schade, kein metasearch");
+		else
+			// Sidebar verstecken
+			window.MetaSearch.Extension.toggleSidebar();
+		*/
+		
+		$("a").click(function(e){
+			// Random-Titel geben, damit es nicht in bestehendem Tab oeffnet (ja, das ist dumm)
+			window.open(this.href, "abcdefghijklmn".charAt(10 * Math.random()));
+			return false;
+		});
+		
+		// input-button-binding braucht nen label
+		$("input.button").each(function(){ $(this).attr('label',$(this).attr('value')); });
+	});
+  </script>
+</head>
+<body class="chrome">
+[% ELSE %]
+<!-- embedded chrome for other pages -->
+<!-- make sure you use the chrome.css! -->
+<div class="chrome">
+[% END %]
+
+
+<form method="post"><!-- globales chrome-form, eigentlich nie falsch (ausser es soll
+                         im Text ein formular angezeigt werden... hmpf -->
+<div id="msg">
+[% IF saved or chrome_embedded or !edit %]
+	[% trigger.get_text_as_html() %]
+[% ELSE %]
+	<!-- editor interface -->
+		<input type="hidden" name="edit" value="[% id %]">
+		<input type="hidden" name="frontend" value="chrome">
+		<textarea name="trigger" class="hidden">[% trigger.get_trigger_text | html %]</textarea>
+		[% IF preview %]
+			[% trigger.get_text_as_html() %]
+			<!--<input type="hidden" name="text" value="[% trigger.get_text | html %]">-->
+			<textarea name="text" class="hidden">[% trigger.get_text | html %]</textarea>
+		[% ELSE %]
+			<textarea name="text">[% trigger.get_text | html %]</textarea>
+		[% END %]
+[% END %]
+</div>
+<div id="imgwrp">
+	<div id="buttons" class="[% buttons_additional_class %]">
+	[% IF not chrome_embedded %]
+		[% IF saved or !edit %]
+			<!--<form method="get">--><!-- jetzt ein globales "form" außenrum -->
+				<input type="hidden" name="edit" value="[% trigger.id %]">
+				<input type="hidden" name="frontend" value="chrome">
+				[% IF saved %]
+					[% IF canceled %]
+						<span class="warning">Abgebrochen.</span>
+					[% ELSE %]
+						<span class="good">Gespeichert.</span>
+					[% END %]
+				[% END %]
+				<input type="submit" value="bearbeiten" title="Bearbeite diesen Kommentar!"
+					class="button edit-button">
+		[% ELSIF edit and preview %]
+			<input type="submit" name="continue" value="Weiterbearbeiten..."
+				class="bold button continue-button">
+			<input type="submit" name="save" value="Speichern"
+				class="button save-button">
+			<div class="small-buttons">
+				<input type="submit" name="switch_frontend" value="Volles Bearbeitungsfenster"
+				       onclick="$('form')[0].setAttribute('target','_blank');return true;"
+					   class="button frontend-button">
+					   <!-- neues Fenster oeffnen als Hack -->
+				<input type="submit" name="cancel" value="Abbrechen"
+				    class="button cancel-button">
+			</div>
+		[% ELSIF edit %]
+			<input type="submit" name="preview" value="Vorschau"
+				class="bold button preview-button">
+			<input type="submit" name="save" value="Speichern"
+				class="button save-button">
+			<div class="small-buttons">
+				<input type="submit" name="switch_frontend" value="Volles Bearbeitungsfenster"
+				       onclick="$('form')[0].setAttribute('target','_blank');return true;"
+					   class="button frontend-button">
+					   <!-- neues Fenster oeffnen als Hack -->
+				<input type="submit" name="cancel" value="Abbrechen"
+					class="button cancel-button">
+			</div>
+		[% END %]
+	[% END %]
+	</div>
+	[% imgsrc = "http://biokemika.uni-frankfurt.de/w/images" %]
+	<img src="[%imgsrc%]/Mr._BC_Sprechblasenteil.png" id="badge">
+	<img src="[% trigger.get_bc_image %]" id="bc">
+</div>
+</form><!-- globales chrome-form -->
+
+[% UNLESS chrome_embedded %]
+<div class="navigation-bar">
+	<input type="button" class="button report-button" value="Fehler melden"
+		onclick="window.open('?feedback=[% trigger.id %]&title=[% data.title | uri %]&url=[% data.url | uri %]', 'errorreport');">
+	<!--<button class="button report-button">Fehler melden</button>-->
+	<input type="button" class="button homepage-button" value="Kommentar-Übersicht"
+		onclick="window.open('?', 'overview');">
+</div>
+</body></html>
+
+[% IF debug_output %]
+<pre class="debug-output">[% debug_output | html %]</pre>
+
+[% END %]<!-- debug_output -->
+[% ELSE %]<!-- chrome embedded -->
+</div>
+[% END %]

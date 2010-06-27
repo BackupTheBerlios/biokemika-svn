@@ -1,0 +1,7 @@
+<img src='http://biokemika.uni-frankfurt.de/w/images/Logo_viralzone.jpg' border="0" height="40" width="120" style="float:right;margin:0px 10px 0px 10px">
+
+'''Super, du hast eine erfolgreiche Suche bei ViralZone durchgeführt!''' 
+
+Wie du siehst, sind die Ausgaben etwas ungewöhnlich. Sie geben die Taxonomie des gesuchten Virus wieder, bezüglich der Baltimore-Klassifizierung. Durch Anklicken der verschiedenen Typen wirst du zu den entsprechenden Seiten in der ViralZone weitergeleitet, wo die gemeinsamen Merkmale aller Viren der entsprechenden Taxonomie erläutert werden. Fast alle dort vorhandenen Texte sind mit Bildern verständlich und sachlich erklärt, sodass du  Taxonomie und die Informationen rund um das Virus schnell verstehst.
+
+{{BC|superhappy}}

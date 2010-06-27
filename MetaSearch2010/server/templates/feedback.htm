@@ -1,0 +1,53 @@
+[% title = "Beschwerde über MetaSearch-Kommentar ($id)" %]
+[% INCLUDE header.htm %]
+
+<div class="links">
+
+[% IF cgi.param('sendmail') %]
+<h1>Vielen Dank für deine Nachricht</h1>
+
+<p>Das BioKemika-Team wird sich diesem Vorfall unverzüglich annehmen.</p>
+
+<input type="button" class="bold"
+   onclick="javascript:window.close();" value="Fenster schliessen">
+
+[% ELSE %]
+
+<h1>War dieser Kommentar unpassend?</h1>
+<p>Wenn der rechts angezeigte Kommentar nicht für die von dir besuchte
+   Seite,</p>
+
+   <p><a href="[% cgi.param('url') %]">[% cgi.param('title') %]</a></p>
+
+<p>passte, und du ihn nicht verbessern kannst, dann hast du hier die
+Möglichkeit, dem BioKemika-Team darüber bescheid zu sagen. Wir werden den
+Fehler dann umgehend korrigieren.</p>
+
+<form method="post">
+    <input type="hidden" name="feedback" value="[% trigger.id %]">
+	<input type="hidden" name="sendmail" value="yes">
+	<input type="hidden" name="cgi-data" value="[% FILTER uri %]
+		[% FOREACH p IN cgi.param %]     # returns list of param keys
+		[% p %] => [% cgi.param(p) %]   # fetch each param value
+		[% END %]
+	[% END %]">
+	
+    <textarea name="content" style="width: 100%; height: 12em">
+Hier ist Platz für eine optionale Fehlerbeschreibung
+	</textarea>
+
+	<input type="submit" value="Abschicken" class="bold">
+	<input type="button" value="Abbrechen" onclick="window.close();">
+</form>
+
+   
+</div>
+<div class="rechts">
+
+<h2>Der angezeigte Kommentar</h2>
+[% chrome_embedded = 1 %]
+[% INCLUDE "chrome.htm" %]
+
+</div>
+
+[% END %] <!-- sendmail -->

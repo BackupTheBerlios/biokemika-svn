@@ -1,0 +1,176 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+       "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Serverkomponente Release Notes | MetaSearch 2010</title>
+  <link type="text/css" rel="stylesheet" href="/metasearch2010/src/design.css">
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <link rel="icon" href="src/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="src/favicon.ico" type="image/x-icon"> 
+</head>
+<body>
+
+<div id="header">
+  <h1>MetaSearch 2010</h1>
+</div>
+
+<h1>Prototyp der Serverkomponente</h1>
+
+<h2>Ernüchterung!</h2>
+<p>Der derzeitige Pre-Alpha-Server-Prototyp vom 22.05.2010
+<ul>
+  <li>hat ein triggerbasiertes Websiteerkennungssystem mit der vollen
+      Funktion von MetaSearch 2009 eingebaut
+	  <br><b>Neu (16.06)</b>: Trigger funktionieren jetzt auch ;-)
+  <li>erlaubt Bearbeitung von Triggern und -Texten über Web, inkl. Vorschau
+      <br><b>Neu (16.06)</b>: Trigger können getestet werden
+  <li>erlaubt Wiki-Formatierung wie in BioKemika
+  <li>hat ein template-basiertes Design
+      <br><b>Neu (22.05)</b>: Hat ordentliche Texte und schönes Layout
+  <li>stellt alle Trigger auf einer Übersichtsseite dar
+  <li>Funktioniert im Zusammenhang mit dem Client-Prototyp
+  <li><b>Neu (22.05)</b>: Erlaubt In-Place-Bearbeitung von Triggern in der Sprechblase,
+      inkl. Vorschau und Wechsel zum vollen Bearbeitungspanel
+  <li><b>Neu (22.05)</b>: Erlaubt echte Vorschauen und Abbrechen der Bearbeitung
+  <li><b>Neu (25.06)</b>: Kann Seitenleiste ausblenden, etc. pp
+  <li><b>Neu (26.06)</b>: Hat eine schöne Oberfläche für die Seitenleiste
+</ul>
+
+<p>Was der derzeitige Prototyp <b>nicht</b> ist:
+<ul>
+  <li>eine Wiki
+  <li>keine wirklich gute Oberfläche
+  <li>ist nicht perfomant (schnell)
+  <li>hat kein ausgeklügeltes Trigger-System
+  <li>ist nicht in BioKemika eingebaut/verknüpft
+  <li>alle weiteren Funktionen und Verknüpfungen mit dem Client fehlen
+</ul>
+
+<p>Einfaches Verbesserungspotential:
+<ul>
+  <li>Trigger-Funktionen ausbauen oder austauschen (Syntax)
+  <li>Wiki-Funktionalität nachrüsten, Datenspeicher wechseln (Datenbank)
+</ul>
+
+<h2><a name="syntax">Trigger-Syntax erklärt</a></h2>
+<p>Trigger geht zeilenweise und ziemlich ähnlich, wie das alte System ging, welches unter
+<a href="http://biokemika.uni-frankfurt.de/wiki/BioKemika:Metasearch/Dokumentation/Konfiguration#ProxyDriver">BioKemika:MetaSearch/Dokumentation/Konfiguration</a>
+beschrieben ist. Kommentarzeilen beginnen mit der Raute (#).
+
+<p>Es gibt derzeit drei Schlüsselwörter, nach denen gefiltert werden kann:
+<ul>
+  <li>url: Sucht in der Adresse (http://www.abc.de/example.htm?und=so&weiter)
+  <li>content: Sucht im kompletten Seiteninhalt (Quelltext), der beim Besucher angezeigt wird
+  <li>title: Sucht im Seitentitel (das, was in der TItelleiste steht)
+</ul>
+
+<p>Gesucht werden kann mittels den vier Operatoren
+<ul>
+  <li><b>=</b> simple: Es wird einfach geschaut, ob der Wert irgendwo in dem Zielgebiet vorkommt, egal ob groß- oder kleingeschrieben
+  <li><b>*=</b> wildcard: Interpretiert den Wert als Wildcard. Soll irgendwo im Text gesucht werden, nicht die * vor und hinter dem Wert vergessen.
+  <li><b>~=</b> regex: Interpretiert den Wert als einen Posix-kompatiblen regulären Ausdruck (PCRE). Delimitter und ähnliche Späße sind anzugeben.
+  <li><b>==</b> exact: Macht einen Stringvergleich, Text und Wert müssen also exakt inkl. Groß- und Kleinschreibung zusammenpassen 
+</ul>
+
+<p>Und nun ein Beispiel:
+<pre>
+url = google
+url ~= search=(\d+)
+content *= *NOTHING*FOUND*
+title == Nichts gefunden!
+</pre>
+
+<p>Ein Trigger matcht, wenn <i>alle</i> seine zeilenweisen Bedingungen zutreffen. Der triviale
+Fall (leerer Trigger - keine Bedingungen) matcht nie. Die Bedingungen werden also aussagenlogisch
+verundet. Möchte man, dass der Trigger matcht, sobald auch nur eine einzige der Aussagen gilt, so
+kann man in eine Zeile schreiben:</p>
+
+<pre>require OR</pre>
+
+<p>Standard ist, wie gesagt:
+
+<pre>require AND</pre>
+
+<p>Und muss nicht angegeben werden.
+
+<h2><a name="text">Trigger-Text erklärt</a></h2>
+<p>Der Text, den man in den Kommentaren schreiben kann, kann ganz gewöhnliches Wiki-Markup
+wie in der BioKemika enthalten. Auch Links funktionieren genauso und gehen direkt in die
+BioKemika. Das ganze ist eine Nachbildung und läuft nicht in der BioKemika, daher funktioniert
+es nicht 100% identisch: Bilder, Vorlagen und Tabellen gehen etwa nicht. Bei Bildern kann man
+sich mit HTML behelfen, siehe etwa einige der vorhandenen Trigger.
+
+<p>Stichwort BCs: Die Pseudo-Notation
+
+<pre>{{Mr. BC|blabla}}</pre>
+
+<p>lädt den BC <i>blabla</i>, wobei <i>blabla</i> eines von
+
+<ul>
+  <li>happy  (Standard)
+  <li>sad
+  <li>superhappy
+  <li>nothingtosay
+</ul>
+
+<p>sein muss.
+
+<h2><a name="debug">Trigger-Test-Suite/Debug-Ausgaben erklärt</a></h2>
+<p>Die Eingaben für das Formular bestehen aus zwei Teilen:
+<ol>
+ <li>Den Eingabedaten, die sonst von der Website kommen. Das sind die <b>URL</b>, die
+     der Adresszeile entnommen wird, und der <b>Quelltext</b> der Seite, zu dem man meist
+	 mit einem Rechtsklick auf der gewünschten Seite kommt und den man in das <b>Content</b>-Feld
+	 mit Copy & Paste reinkopieren kann.</li>
+ <li>Auswahlkriterien zum Testen von Triggern: Wenn nur ein Trigger getestet werden soll
+     (also eine Ja/Nein-Frage: Matcht er mit den Eingabedaten oder nicht?), dann gibt man
+	 hier die ID des Triggers (so ein langer <a href="http://de.wikipedia.org/wiki/Universally_Unique_Identifier">Rattenschwanz</a>
+	 wie <tt>3275bd7e-462c-4684-9efa-d8f513448126</tt>) ein, ansonsten lässt man das
+	 Feld <b>leer</b>, um (wie gewohnt) alle Trigger durchzuprüfen.
+	 <br>Die zweite und Interessantere Eingabe ist die <b>Debugausgaben</b>-Auswahl. Wenn man
+	 dies aktiviert, wird <b>für jeden</b> evaluierten Trigger eine ausführliche Analyse
+	 ausgegeben. Wenn man hier nicht nur einen, sondern eben alle Trigger durchlaufen lässt,
+	 wird die Ausgabe natürlich etwas länger.
+</ol>
+
+<p>Bis auf die Debugausgaben erklärt sich alles von selbst. Diese sind etwas komprimierte Informationen
+und dadurch natürlich kryptisch. Der Trigger wird Zeile für Zeile interpretiert und jeder
+Ausdruck evaluiert. Eine Ausgabezeile sieht so aus:
+
+<pre>**** line <i>i</i>, id <i>j</i>, <i>op</i> OPERATOR: <i>ergebnis</i> = <i>vergleichswert</i> OPERATOR <i>eingabe</i></pre>
+
+Dabei ist
+<ul>
+  <li><i>i</i> die wirkliche Zeilennummer, in der die Anweisung steht. Das kann man direkt
+      mit der Definition des Triggers vergleichen! Gezählt wird in guter Informatiker-Manier
+	  natürlich <b>ab 0</b> (0. Zeile, 1. Zeile, ...)
+  <li><i>j</i> ist die Identifikationsnummer der Zeile, die in der Triggerdefinition gewählt
+      werden kann. Dies ist die Implementierung des erweiterten Triggerkonzepts, findet aber
+	  derzeit (16.05.2010) keine Anwendung, daher gilt <i>i = j</i>
+  <li><i>op</i> ist der Operator, der in der Zeile verwendet wird, also einer von
+      <tt>=</tt>, <tt>==</tt>, <tt>~=</tt>, <tt>==</tt>, usw. Dieser Operator ist
+	  quasi in der nachfolgenden Gleichung anstelle von <i>OPERATOR</i> einzusetzen.
+  <li><i>ergebnis</i> = <i>vergleichswert</i> OPERATOR <i>eingabe</i> ist der tatsächlich
+      evaluierte Ausdruck. Wenn hier etwas unlogisches steht (etwa mit dem Operator <i>==</i>
+	  das Ergebnis <tt>0 = oma OPERATOR oma</tt>), dann deutet das auf einen Fehler im
+	  System hin. Die <i>eingabe</i> ist das, was vorher im Formular an Testwerten eingegeben
+	  wurde. Das kann unter Umständen (bei längeren <i>Content</i>-Feldern) sehr lang sein
+	  und die ganze Debug-Ausgabestruktur zerschiessen. Der Vergleichswert ist der Wert,
+	  der an der Stelle im Trigger angegeben wurde. Das Ergebnis ist die Ausgabe der Auswertung.
+	  Sie kann natürlich nur 0 (FALSE) oder 1 (TRUE) sein.
+</ul>
+
+<p>Dann gibt es natürlich noch ein paar weiterer Ausgabemöglichkeiten. Interessant ist vor allem
+der Schluss:
+
+<pre>**** REDUCING output set [0,0] with logical AND
+RETURN FOR 1929f483-c5de-4460-8df7-df779f3fbd9f = 0</pre>
+
+<p>Hier werden alle ausgewerteten Triggerzeilen mit einer logischen Bedingung miteinander
+verknüpft (reduce-Operation), sodass ein einzelner Wahrheitswert rauskommt. <b>Wenn dieser
+Wert 1 ist, <i>matcht</i> der Trigger und der zugehörige Kommentar wird sofort angezeigt</b>.
+
+<p>Ansonsten gibt es auch noch andere Ausgaben, etwa Fehler. Wenn Fehler auftreten, heißt das in
+den meisten Fällen, dass im Trigger ein Syntaxfehler vorliegt. In diesem Fall sollte man mit
+den obigen Regeln vergleichen, ob der eigene Trigger regelkonform ist.
+

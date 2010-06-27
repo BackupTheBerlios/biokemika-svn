@@ -1,0 +1,1 @@
+url = http://www.ebi.ac.uk/pdbsum/

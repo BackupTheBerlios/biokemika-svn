@@ -1,0 +1,44 @@
+# Kommentar: So soll ein Trigger aussehen.
+url = google
+url ~= search=(\d+)
+content *= *NOTHING*FOUND*
+title == Nichts gefunden!
+
+# also: Trigger-Felder url, content, title,
+#       dazu pseudo-arrays get, post, request, request_header, response_header, header (=sucht in beidem)
+
+get[foo] = simple
+post[abc] == /regex/i
+request[] =* wildcard
+request_header[query] == exakt
+
+# und statt simple, widlcard, regex, exact auch boolean-abfragen
+get[foo] exits
+post[foo] not exists
+
+# ahh... das not könnte man ausbauen
+get[foo] not = bla
+url not =~ /blabla/;
+url !~ /blabla/;
+
+# zugegeben, das grenzt an verruecktheit...
+
+# und um das zu kombinieren (standard ist VERUNDUNG) kann man das umstellen zu
+require AND
+require OR    # letztes zaehlt...
+
+# bzw. noch schlauer:
+01 url = google
+02 url = bing
+03 get[query] = hannes
+eval (01 OR 02) AND 03
+
+# dh. allgemeines format
+\d+ (token\s+)+
+# wobei die tokens dann auseinandergenommen werden (erstes token mit [], etc.)
+
+# eigentlich ist das hier schon eine richtige sprache, fuer die
+#  - tada - ein compiler geschrieben werden muesste. und so.
+
+
+

@@ -1,0 +1,3 @@
+and some text foobar to this trigger
+
+{{Mr. BC|happy}}
